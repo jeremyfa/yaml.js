@@ -1,0 +1,13 @@
+syntax: glob
+.DS_Store
+.tmp_*
+*~
+.settings
+.cache
+.directory
+.buildpath
+.project
+*.orig
+
+syntax: regexp
+Thumbs\.db
