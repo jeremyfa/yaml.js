@@ -107,7 +107,7 @@ comments: &gt;
     Backup contact is Nancy
     Billsmer @ 338-4338.
 </textarea>
-<input type="button" id="parse" name="parse" value="Parse &raquo;" onclick="$('result').innerHTML=JSON.encode(YAML.decode($('yaml').value))" />
+<input type="button" id="parse" name="parse" value="Parse &raquo;" onclick="try{$('result').innerHTML=JSON.encode(YAML.decode($('yaml').value))}catch(e){alert(e);}" />
 <div id="result"></div>
 
 </form>
