@@ -89,7 +89,8 @@ Yaml.prototype =
 		}
 		catch ( e )
 		{
-			alert('Syntax error: '+e.message);
+			if ( e.name != undefined && e.name.toString == "TypeError" ) throw e;
+			throw 'Syntax error: '+e.message;
 			//throw new InvalidArgumentException(e.name+' ('+e.lineNumber+') '+e.message);
 		}
 
