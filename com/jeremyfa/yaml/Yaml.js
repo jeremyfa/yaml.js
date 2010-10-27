@@ -54,11 +54,18 @@ Yaml.prototype =
 	 *
 	 * @throws InvalidArgumentException If the YAML is not valid
 	 */
-	loadFile: function(file /* String */)
+	loadFile: function(file /* String */, callback /* Function */)
 	{
-		input = this.getFileContents(file);
+		if ( callback == undefined )
+		{
+			input = this.getFileContents(file);
+			return this.load(input);
+		}
 		
-		return this.load(input);
+		this.getFileContents(file, function(data)
+		{
+			callback(new Yaml().load(data));
+		});
 	},
 
 	/**
@@ -140,14 +147,33 @@ Yaml.prototype =
 		return null;
 	},
 	
-	getFileContents: function(file)
+	getFileContents: function(file, callback)
 	{
 		var request = this.getXHR();
 		
-		request.open('GET', file, false);                  
-		request.send(null);
+		// Sync
+		if ( callback == undefined )
+		{
+			request.open('GET', file, false);                  
+			request.send(null);
+
+			if ( request.status == 200 || request.status == 0 )
+				return request.responseText;
+			
+			return null;
+		}
 		
-		return request.responseText;
+		// Async
+		request.onreadystatechange = function()
+		{
+			if ( request.readyState == 4 )
+				if ( request.status == 200 || request.status == 0 )
+					callback(request.responseText);
+				else
+					callback(null);
+		};
+		request.open('GET', file, true);                  
+		request.send(null);
 	}
 };
 
@@ -155,14 +181,17 @@ var YAML =
 {
 	encode: function(input)
 	{
-		var yaml = new Yaml();
-		return yaml.dump(input);
+		return new Yaml().dump(input);
 	},
 	
 	decode: function(input)
 	{
-		var yaml = new Yaml();
-		return yaml.load(input);
+		return new Yaml().load(input);
+	},
+	
+	load: function(file, callback)
+	{
+		return new Yaml().loadFile(file, callback);
 	}
 };
 
