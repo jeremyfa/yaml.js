@@ -16,6 +16,17 @@ Parse yaml string:
 
     nativeObject = YAML.decode(yamlString);
 
+Load yaml file:
+
+    nativeObject = YAML.load('file.yml');
+
+Load yaml file (asynchronous):
+
+    YAML.load('file.yml', function(result)
+    {
+      nativeObject = result;
+    }
+
 Dump native object into yaml string:
 
     yamlString = YAML.encode(nativeObject);
