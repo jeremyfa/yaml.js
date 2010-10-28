@@ -25,7 +25,7 @@ Load yaml file (asynchronous):
     YAML.load('file.yml', function(result)
     {
       nativeObject = result;
-    }
+    });
 
 Dump native object into yaml string:
 
