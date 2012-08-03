@@ -14,7 +14,7 @@ YamlInline.prototype =
 	 *
 	 * @return object A JS object representing the YAML string
 	 */
-	load: function(value)
+	parse: function(value)
 	{
 		var result = null;
 		value = this.trim(value);
@@ -34,6 +34,11 @@ YamlInline.prototype =
 				break;
 			default:
 				result = this.parseScalar(value);
+
+				// some comment can end the scalar
+				if ( value.substr(this.i).replace(/^\s+#.*$/, '') ) {
+					throw new YamlParseException('Unexpected characters near "'+value.substr(this.i)+'".');
+				}				
 		}
 
 		return result;
@@ -48,47 +53,30 @@ YamlInline.prototype =
 	 */
 	dump: function(value)
 	{
-		var trueValues;
-		var falseValues;
-		
-		var yaml = new Yaml();
-		
-		if ( '1.1' == yaml.getSpecVersion() )
-		{
-			trueValues = ['true', 'on', '+', 'yes', 'y'];
-			falseValues = ['false', 'off', '-', 'no', 'n'];
-		}
-		else
-		{
-			trueValues = ['true'];
-			falseValues = ['false'];
-		}
-
-		if ( typeof(value) == 'object' && null != value )
-			return this.dumpObject(value);
 		if ( undefined == value || null == value )
-			return 'null';
+			return 'null';	
+		if ( value instanceof Date)
+			return value.toISOString();
+		if ( typeof(value) == 'object')
+			return this.dumpObject(value);
 		if ( typeof(value) == 'boolean' )
 			return value ? 'true' : 'false';
-		if ( /^\d+/.test(value) )
+		if ( /^\d+$/.test(value) )
 			return typeof(value) == 'string' ? "'"+value+"'" : parseInt(value);
 		if ( this.isNumeric(value) )
 			return typeof(value) == 'string' ? "'"+value+"'" : parseFloat(value);
 		if ( typeof(value) == 'number' )
 			return value == Infinity ? '.Inf' : ( value == -Infinity ? '-.Inf' : ( isNaN(value) ? '.NAN' : value ) );
-		if ( (value+'').indexOf("\n") != -1 || (value+'').indexOf("\r") != -1 )
-			return '"'+value.split('"').join('\\"').split("\n").join('\\n').split("\r").join('\\r')+'"';
-		if ( ( /[\s\'"\:\{\}\[\],&\*\#\?]/.test(value) ) || ( /^[-?|<>=!%@`]/.test(value) ) )
-			return "'"+value.split('\'').join('\'\'')+"'";
+		var yaml = new YamlEscaper();
+		if ( yaml.requiresDoubleQuoting(value) )
+			return yaml.escapeWithDoubleQuotes(value);
+		if ( yaml.requiresSingleQuoting(value) )
+			return yaml.escapeWithSingleQuotes(value);
 		if ( '' == value )
-			return "''";
+			return "";
 		if ( this.getTimestampRegex().test(value) )
 			return "'"+value+"'";
-		if ( this.inArray(value.toLowerCase(), trueValues) )
-			return "'"+value+"'";
-		if ( this.inArray(value.toLowerCase(), falseValues) )
-			return "'"+value+"'";
-		if ( this.inArray(value.toLowerCase(), ['null','~']) )
+		if ( this.inArray(value.toLowerCase(), ['null','~','true','false']) )
 			return "'"+value+"'";
 		// default
 			return value;
@@ -138,11 +126,13 @@ YamlInline.prototype =
 	 *
 	 * @param scalar scalar
 	 * @param string delimiters
-	 * @param object stringDelimiter
+	 * @param object stringDelimiters
 	 * @param integer i
 	 * @param boolean evaluate
 	 *
 	 * @return string A YAML string
+	 *
+	 * @throws YamlParseException When malformed inline YAML string is parsed
 	 */
 	parseScalar: function(scalar, delimiters, stringDelimiters, i, evaluate)
 	{
@@ -153,13 +143,19 @@ YamlInline.prototype =
 		
 		var output = null;
 		var pos = null;
-		var match = null;
+		var matches = null;
 		
 		if ( this.inArray(scalar[i], stringDelimiters) )
 		{
 			// quoted scalar
 			output = this.parseQuotedScalar(scalar, i);
 			i = this.i;
+			if (null !== delimiters) {
+				var tmp = scalar.substr(i).replace(/^\s+/, '');
+				if (!this.inArray(tmp.charAt(0), delimiters)) {
+					throw new YamlParseException('Unexpected characters ('+scalar.substr(i)+').');
+				}
+			}
 		}
 		else
 		{
@@ -177,14 +173,14 @@ YamlInline.prototype =
 					output = output.substr(0, pos).replace(/\s+$/g,'');
 				}
 			}
-			else if ( match = new RegExp('^(.+?)('+delimiters.join('|')+')').exec((scalar+'').substring(i)) )
+			else if ( matches = new RegExp('^(.+?)('+delimiters.join('|')+')').exec((scalar+'').substring(i)) )
 			{
-				output = match[1];
+				output = matches[1];
 				i += output.length;
 			}
 			else
 			{
-				throw new InvalidArgumentException('Malformed inline YAML string ('+scalar+').');
+				throw new YamlParseException('Malformed inline YAML string ('+scalar+').');
 			}
 			output = evaluate ? this.evaluateScalar(output) : output;
 		}
@@ -197,36 +193,37 @@ YamlInline.prototype =
 	/**
 	 * Parses a quoted scalar to YAML.
 	 *
-	 * @param string	$scalar
-	 * @param integer $i
+	 * @param string	scalar
+	 * @param integer i
 	 *
 	 * @return string A YAML string
+	 *
+	 * @throws YamlParseException When malformed inline YAML string is parsed
 	 */
 	parseQuotedScalar: function(scalar, i)
 	{
-		var match = null;
-		if ( !(match = new RegExp('^'+YamlInline.REGEX_QUOTED_STRING).exec((scalar+'').substring(i))) )
+		var matches = null;
+		//var item = /^(.*?)['"]\s*(?:[,:]|[}\]]\s*,)/.exec((scalar+'').substring(i))[1];
+		
+		if ( !(matches = new RegExp('^'+YamlInline.REGEX_QUOTED_STRING).exec((scalar+'').substring(i))) )
 		{
-			throw new InvalidArgumentException('Malformed inline YAML string ('+(scalar+'').substring(i)+').');
+			throw new YamlParseException('Malformed inline YAML string ('+(scalar+'').substring(i)+').');
 		}
 
-		var output = match[0].substr(1, match[0].length - 2);
+		var output = matches[0].substr(1, matches[0].length - 2);
+		
+		var unescaper = new YamlUnescaper();
 
 		if ( '"' == (scalar+'').charAt(i) )
 		{
-			// evaluate the string
-			output = output
-				.split('\\"').join('"')
-				.split('\\n').join("\n")
-				.split('\\r').join("\r");
+			output = unescaper.unescapeDoubleQuotedString(output);
 		}
 		else
 		{
-			// unescape '
-			output = output.split('\'\'').join('\'');
+			output = unescaper.unescapeSingleQuotedString(output);
 		}
 
-		i += match[0].length;
+		i += matches[0].length;
 
 		this.i = i;
 		return output;
@@ -239,6 +236,8 @@ YamlInline.prototype =
 	 * @param integer i
 	 *
 	 * @return string A YAML string
+	 *
+	 * @throws YamlParseException When malformed inline YAML string is parsed
 	 */
 	parseSequence: function(sequence, i)
 	{
@@ -283,7 +282,7 @@ YamlInline.prototype =
 						}
 						catch ( e )
 						{
-							if ( !(e instanceof InvalidArgumentException ) ) throw e;
+							if ( !(e instanceof YamlParseException ) ) throw e;
 							// no, it's not
 						}
 					}
@@ -296,7 +295,7 @@ YamlInline.prototype =
 			i++;
 		}
 
-		throw new InvalidArgumentException('Malformed inline YAML string '+sequence);
+		throw new YamlParseException('Malformed inline YAML string "'+sequence+'"');
 	},
 
 	/**
@@ -306,6 +305,8 @@ YamlInline.prototype =
 	 * @param integer i
 	 *
 	 * @return string A YAML string
+	 *
+	 * @throws YamlParseException When malformed inline YAML string is parsed
 	 */
 	parseMapping: function(mapping, i)
 	{
@@ -379,7 +380,7 @@ YamlInline.prototype =
 			if ( doContinue ) continue;
 		}
 
-		throw new InvalidArgumentException('Malformed inline YAML string '+mapping);
+		throw new YamlParseException('Malformed inline YAML string "'+mapping+'"');
 	},
 
 	/**
@@ -393,22 +394,6 @@ YamlInline.prototype =
 	{
 		scalar = this.trim(scalar);
 		
-		var trueValues;
-		var falseValues;
-		
-		var yaml = new Yaml();
-		
-		if ( '1.1' == yaml.getSpecVersion() )
-		{
-			trueValues = ['true', 'on', '+', 'yes', 'y'];
-			falseValues = ['false', 'off', '-', 'no', 'n'];
-		}
-		else
-		{
-			trueValues = ['true'];
-			falseValues = ['false'];
-		}
-		
 		var raw = null;
 		var cast = null;
 
@@ -416,22 +401,22 @@ YamlInline.prototype =
 				( '' == scalar ) ||
 				( '~' == scalar ) )
 			return null;
-		if ( (scalar+'').indexOf('!str') != -1 )
+		if ( (scalar+'').indexOf('!str ') == 0 )
 			return (''+scalar).substring(5);
-		if ( (scalar+'').indexOf('! ') != -1 )
-			return parseInt(this.parseScalar((scalar+'').substring(2)));
-		if ( /^\d+/.test(scalar) )
+		if ( (scalar+'').indexOf('! ') == 0 )
+			return parseInt(this.parseScalar((scalar+'').substr(2)));
+		if ( /^\d+$/.test(scalar) )
 		{
 			raw = scalar;
 			cast = parseInt(scalar);
 			return '0' == scalar.charAt(0) ? this.octdec(scalar) : (( ''+raw == ''+cast ) ? cast : raw);
 		}
-		if ( this.inArray(scalar.toLowerCase(), trueValues) )
+		if ( 'true' == (scalar+'').toLowerCase() )
 			return true;
-		if ( this.inArray(scalar.toLowerCase(), falseValues) )
+		if ( 'false' == (scalar+'').toLowerCase() )
 			return false;
 		if ( this.isNumeric(scalar) )
-			return '0x' == (scalar+'').substr(0, 2) ? hexdec($scalar) : floatval($scalar);
+			return '0x' == (scalar+'').substr(0, 2) ? this.hexdec(scalar) : parseFloat(scalar);
 		if ( scalar.toLowerCase() == '.inf' )
 			return Infinity;
 		if ( scalar.toLowerCase() == '.nan' )
@@ -441,11 +426,16 @@ YamlInline.prototype =
 		if ( /^(-|\+)?[0-9,]+(\.[0-9]+)?$/.test(scalar) )
 			return parseFloat(scalar.split(',').join(''));
 		if ( this.getTimestampRegex().test(scalar) )
-			return this.strtodate(scalar);
+			return new Date(this.strtotime(scalar));
 		//else
 			return ''+scalar;
 	},
 
+	/**
+	 * Gets a regex that matches an unix timestamp
+	 *
+	 * @return string The regular expression
+	 */
 	getTimestampRegex: function()
 	{
 		return new RegExp('^'+
@@ -502,11 +492,11 @@ YamlInline.prototype =
 	{
 		var len = tab.length;
 		if (typeof fun != "function")
-			throw new InvalidArgumentException("fun is not a function");
+			throw new YamlParseException("fun is not a function");
 		
 		// no value to return if no initial value and an empty array
 		if (len == 0 && arguments.length == 1)
-			throw new InvalidArgumentException("empty array");
+			throw new YamlParseException("empty array");
 		
 		var i = 0;
 		if (arguments.length >= 2)
@@ -525,7 +515,7 @@ YamlInline.prototype =
 		
 				// if array contains no values, no initial value to return
 				if (++i >= len)
-					throw new InvalidArgumentException("no initial value to return");
+					throw new YamlParseException("no initial value to return");
 			}
 			while (true);
 		}
@@ -551,18 +541,17 @@ YamlInline.prototype =
 	    return parseInt((input+'').replace(/[^a-f0-9]/gi, ''), 16);
 	},
 	
-	strtodate: function(input)
-	{
-		var date = new Date();
-		date.setTime(this.strtotime(input, new Date().getTime()));
-		return date;
-	},
-	
 	/**
 	 * @see http://phpjs.org/functions/strtotime
+	 * @note we need timestamp with msecs so /1000 removed
+	 * @note original contained binary | 0 (wtf?!) everywhere, which messes everything up 
 	 */
-	strtotime: function(h,c){var f,g,l,k="",d="";k=h;k=k.replace(/\s{2,}|^\s|\s$/g," ");k=k.replace(/[\t\r\n]/g,"");if(k=="now"){return(new Date()).getTime()/1000}else{if(!isNaN(d=Date.parse(k))){return(d/1000)}else{if(c){c=new Date(c*1000)}else{c=new Date()}}}k=k.toLowerCase();var e={day:{sun:0,mon:1,tue:2,wed:3,thu:4,fri:5,sat:6},mon:{jan:0,feb:1,mar:2,apr:3,may:4,jun:5,jul:6,aug:7,sep:8,oct:9,nov:10,dec:11}};var a=this.strtotime;var b=function(i){var p=(i[2]&&i[2]=="ago");var o=(o=i[0]=="last"?-1:1)*(p?-1:1);switch(i[0]){case"last":case"next":switch(i[1].substring(0,3)){case"yea":c.setFullYear(c.getFullYear()+o);break;case"mon":c.setMonth(c.getMonth()+o);break;case"wee":c.setDate(c.getDate()+(o*7));break;case"day":c.setDate(c.getDate()+o);break;case"hou":c.setHours(c.getHours()+o);break;case"min":c.setMinutes(c.getMinutes()+o);break;case"sec":c.setSeconds(c.getSeconds()+o);break;default:var n;if(typeof(n=e.day[i[1].substring(0,3)])!="undefined"){var q=n-c.getDay();if(q==0){q=7*o}else{if(q>0){if(i[0]=="last"){q-=7}}else{if(i[0]=="next"){q+=7}}}c.setDate(c.getDate()+q)}}break;default:if(/\d+/.test(i[0])){o*=parseInt(i[0],10);switch(i[1].substring(0,3)){case"yea":c.setFullYear(c.getFullYear()+o);break;case"mon":c.setMonth(c.getMonth()+o);break;case"wee":c.setDate(c.getDate()+(o*7));break;case"day":c.setDate(c.getDate()+o);break;case"hou":c.setHours(c.getHours()+o);break;case"min":c.setMinutes(c.getMinutes()+o);break;case"sec":c.setSeconds(c.getSeconds()+o);break}}else{return false}break}return true};g=k.match(/^(\d{2,4}-\d{2}-\d{2})(?:\s(\d{1,2}:\d{2}(:\d{2})?)?(?:\.(\d+))?)?$/);if(g!=null){if(!g[2]){g[2]="00:00:00"}else{if(!g[3]){g[2]+=":00"}}l=g[1].split(/-/g);for(f in e.mon){if(e.mon[f]==l[1]-1){l[1]=f}}l[0]=parseInt(l[0],10);l[0]=(l[0]>=0&&l[0]<=69)?"20"+(l[0]<10?"0"+l[0]:l[0]+""):(l[0]>=70&&l[0]<=99)?"19"+l[0]:l[0]+"";return parseInt(a(l[2]+" "+l[1]+" "+l[0]+" "+g[2])+(g[4]?g[4]/1000:""),10)}var j="([+-]?\\d+\\s(years?|months?|weeks?|days?|hours?|min|minutes?|sec|seconds?|sun\\.?|sunday|mon\\.?|monday|tue\\.?|tuesday|wed\\.?|wednesday|thu\\.?|thursday|fri\\.?|friday|sat\\.?|saturday)|(last|next)\\s(years?|months?|weeks?|days?|hours?|min|minutes?|sec|seconds?|sun\\.?|sunday|mon\\.?|monday|tue\\.?|tuesday|wed\\.?|wednesday|thu\\.?|thursday|fri\\.?|friday|sat\\.?|saturday))(\\sago)?";g=k.match(new RegExp(j,"gi"));if(g==null){return false}for(f=0;f<g.length;f++){if(!b(g[f].split(" "))){return false}}return(c.getTime()/1000)}
+	strtotime: function (h,b){var f,c,g,k,d="";h=(h+"").replace(/\s{2,}|^\s|\s$/g," ").replace(/[\t\r\n]/g,"");if(h==="now"){return b===null||isNaN(b)?new Date().getTime()||0:b||0}else{if(!isNaN(d=Date.parse(h))){return d||0}else{if(b){b=new Date(b)}else{b=new Date()}}}h=h.toLowerCase();var e={day:{sun:0,mon:1,tue:2,wed:3,thu:4,fri:5,sat:6},mon:["jan","feb","mar","apr","may","jun","jul","aug","sep","oct","nov","dec"]};var a=function(i){var o=(i[2]&&i[2]==="ago");var n=(n=i[0]==="last"?-1:1)*(o?-1:1);switch(i[0]){case"last":case"next":switch(i[1].substring(0,3)){case"yea":b.setFullYear(b.getFullYear()+n);break;case"wee":b.setDate(b.getDate()+(n*7));break;case"day":b.setDate(b.getDate()+n);break;case"hou":b.setHours(b.getHours()+n);break;case"min":b.setMinutes(b.getMinutes()+n);break;case"sec":b.setSeconds(b.getSeconds()+n);break;case"mon":if(i[1]==="month"){b.setMonth(b.getMonth()+n);break}default:var l=e.day[i[1].substring(0,3)];if(typeof l!=="undefined"){var p=l-b.getDay();if(p===0){p=7*n}else{if(p>0){if(i[0]==="last"){p-=7}}else{if(i[0]==="next"){p+=7}}}b.setDate(b.getDate()+p);b.setHours(0,0,0,0)}}break;default:if(/\d+/.test(i[0])){n*=parseInt(i[0],10);switch(i[1].substring(0,3)){case"yea":b.setFullYear(b.getFullYear()+n);break;case"mon":b.setMonth(b.getMonth()+n);break;case"wee":b.setDate(b.getDate()+(n*7));break;case"day":b.setDate(b.getDate()+n);break;case"hou":b.setHours(b.getHours()+n);break;case"min":b.setMinutes(b.getMinutes()+n);break;case"sec":b.setSeconds(b.getSeconds()+n);break}}else{return false}break}return true};g=h.match(/^(\d{2,4}-\d{2}-\d{2})(?:\s(\d{1,2}:\d{2}(:\d{2})?)?(?:\.(\d+))?)?$/);if(g!==null){if(!g[2]){g[2]="00:00:00"}else{if(!g[3]){g[2]+=":00"}}k=g[1].split(/-/g);k[1]=e.mon[k[1]-1]||k[1];k[0]=+k[0];k[0]=(k[0]>=0&&k[0]<=69)?"20"+(k[0]<10?"0"+k[0]:k[0]+""):(k[0]>=70&&k[0]<=99)?"19"+k[0]:k[0]+"";return parseInt(this.strtotime(k[2]+" "+k[1]+" "+k[0]+" "+g[2])+(g[4]?g[4]:""),10)}var j="([+-]?\\d+\\s(years?|months?|weeks?|days?|hours?|min|minutes?|sec|seconds?|sun\\.?|sunday|mon\\.?|monday|tue\\.?|tuesday|wed\\.?|wednesday|thu\\.?|thursday|fri\\.?|friday|sat\\.?|saturday)|(last|next)\\s(years?|months?|weeks?|days?|hours?|min|minutes?|sec|seconds?|sun\\.?|sunday|mon\\.?|monday|tue\\.?|tuesday|wed\\.?|wednesday|thu\\.?|thursday|fri\\.?|friday|sat\\.?|saturday))(\\sago)?";g=h.match(new RegExp(j,"gi"));if(g===null){return false}for(f=0,c=g.length;f<c;f++){if(!a(g[f].split(" "))){return false}}return b.getTime()||0}
+	 
 };
 
+/*
+ * @note uses only non-capturing sub-patterns (unlike PHP original)
+ */
 YamlInline.REGEX_QUOTED_STRING = '(?:"(?:[^"\\\\]*(?:\\\\.[^"\\\\]*)*)"|\'(?:[^\']*(?:\'\'[^\']*)*)\')';
 

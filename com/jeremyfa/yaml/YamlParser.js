@@ -1,11 +1,11 @@
 
 /**
  * YamlParser parses YAML strings to convert them to JS objects
- * (port of sfYaml Symfony Component)
+ * (port of Yaml Symfony Component)
  */
 var YamlParser = function(offset /* Integer */)
 {
-		this.offset = this.isDefined(offset) ? offset : 0;
+		this.offset = (offset !== undefined) ? offset : 0;
 };
 YamlParser.prototype =
 {
@@ -29,7 +29,8 @@ YamlParser.prototype =
 		this.lines = this.cleanup(value).split("\n");
 		
 		var data = null;
-		
+      var context = null;
+      		
 		while ( this.moveToNextLine() )
 		{
 			if ( this.isCurrentLineEmpty() )
@@ -38,9 +39,9 @@ YamlParser.prototype =
 			}
 			
 			// tab?
-			if ( /^\t+/.test(this.currentLine) )
+			if ( this.currentLine.charAt(0) == '\t' )
 			{
-				throw new InvalidArgumentException('A YAML file cannot contain tabs as indentation at line '+(this.getRealCurrentLineNb()+1)+' ('+this.currentLine+')');
+				throw new YamlParseException('A YAML file cannot contain tabs as indentation.', this.getRealCurrentLineNb() + 1, this.currentLine);
 			}
 			
 			var isRef = false;
@@ -58,8 +59,14 @@ YamlParser.prototype =
 			
 			if ( values = /^\-((\s+)(.+?))?\s*$/.exec(this.currentLine) )
 			{
+
+				if (context && 'mapping' == context) {
+					throw new YamlParseException('You cannot define a sequence item when in a mapping', this.getRealCurrentLineNb() + 1, this.currentLine);
+				}
+				context = 'sequence';
+
 				if ( !this.isDefined(data) ) data = [];
-				if ( !(data instanceof Array) ) throw new InvalidArgumentException("Non array entry at line "+(this.getRealCurrentLineNb() + 1)+".");
+				//if ( !(data instanceof Array) ) throw new YamlParseException("Non array entry", this.getRealCurrentLineNb() + 1, this.currentLine);
 				
 				values = {leadspaces: values[2], value: values[3]};
 				
@@ -71,7 +78,7 @@ YamlParser.prototype =
 				}
 				
 				// array
-				if ( !this.isDefined(values.value) || '' == values.value.split(' ').join('') || this.trim(values.value).charAt(0) == '#' )
+				if ( !this.isDefined(values.value) || '' == this.trim(values.value) || values.value.replace(/^ +/,'').charAt(0) == '#' )
 				{
 					c = this.getRealCurrentLineNb() + 1;
 					parser = new YamlParser(c);
@@ -81,8 +88,10 @@ YamlParser.prototype =
 				}
 				else
 				{
-					if ( this.isDefined(values.leadspaces) && ' ' == values.leadspaces && ( matches = new RegExp('^('+YamlInline.REGEX_QUOTED_STRING+'|[^ \'"\{].*?) *\:(\\s+(.+?))?\\s*$').exec(values.value) ) )
-					{
+					if ( this.isDefined(values.leadspaces) && 
+						' ' == values.leadspaces && 
+						( matches = new RegExp('^('+YamlInline.REGEX_QUOTED_STRING+'|[^ \'"\{\[].*?) *\:(\\s+(.+?))?\\s*$').exec(values.value) ) 
+					) {
 						matches = {key: matches[1], value: matches[3]};
 						// this is a compact notation element, add to next block and parse
 						c = this.getRealCurrentLineNb();
@@ -104,20 +113,37 @@ YamlParser.prototype =
 					}
 				}
 			}
-			else if ( values = new RegExp('^('+YamlInline.REGEX_QUOTED_STRING+'|[^ \'"].*?) *\:(\\s+(.+?))?\\s*$').exec(this.currentLine) )
+			else if ( values = new RegExp('^('+YamlInline.REGEX_QUOTED_STRING+'|[^ \'"\[\{].*?) *\:(\\s+(.+?))?\\s*$').exec(this.currentLine) )
 			{
 				if ( !this.isDefined(data) ) data = {};
-				if ( data instanceof Array ) throw new InvalidArgumentException("Non mapped entry at line "+(this.getRealCurrentLineNb() + 1)+".");
+				if (context && 'sequence' == context) {
+					throw new YamlParseException('You cannot define a mapping item when in a sequence', this.getRealCurrentLineNb() + 1, this.currentLine);
+				}
+				context = 'mapping';				
+				//if ( data instanceof Array ) throw new YamlParseException("Non mapped entry", this.getRealCurrentLineNb() + 1, this.currentLine);
 				
 				values = {key: values[1], value: values[3]};
 				
-				key = (new YamlInline()).parseScalar(values.key);
+				try {
+					key = new YamlInline().parseScalar(values.key);
+				} catch (e) {
+					if ( e instanceof YamlParseException ) {
+						e.setParsedLine(this.getRealCurrentLineNb() + 1);
+						e.setSnippet(this.currentLine);
+					}
+					throw e;
+				}				
+				
 				
 				if ( '<<' == key )
 				{
 					if ( this.isDefined(values.value) && '*' == (values.value+'').charAt(0) )
 					{
-						isInPlace = values.value.substring(1);
+						isInPlace = values.value.substr(1);
+						if ( this.refs[isInPlace] == undefined )
+						{
+							throw new YamlParseException('Reference "'+value+'" does not exist', this.getRealCurrentLineNb() + 1, this.currentLine);
+						}
 					}
 					else
 					{
@@ -139,7 +165,7 @@ YamlParser.prototype =
 						var merged = [];
 						if ( !this.isObject(parsed) )
 						{
-							throw new InvalidArgumentException("YAML merge keys used with a scalar value instead of an array at line "+(this.getRealCurrentLineNb() + 1)+" ("+this.currentLine+")");
+							throw new YamlParseException("YAML merge keys used with a scalar value instead of an array", this.getRealCurrentLineNb() + 1, this.currentLine);
 						}
 						else if ( this.isDefined(parsed[0]) )
 						{
@@ -151,7 +177,7 @@ YamlParser.prototype =
 								var parsedItem = reverse[i];
 								if ( !this.isObject(reverse[i]) )
 								{
-									throw new InvalidArgumentException("Merge items must be arrays at line "+(this.getRealCurrentLineNb() + 1)+" ("+reverse[i]+").");
+									throw new YamlParseException("Merge items must be arrays", this.getRealCurrentLineNb() + 1, this.currentLine);
 								}
 								merged = this.mergeObject(reverse[i], merged);
 							}
@@ -178,10 +204,10 @@ YamlParser.prototype =
 					data = isProcessed;
 				}
 				// hash
-				else if ( !this.isDefined(values.value) || '' == values.value.split(' ').join('') || this.trim(values.value).charAt(0) == '#' )
+				else if ( !this.isDefined(values.value) || '' == this.trim(values.value) || this.trim(values.value).charAt(0) == '#' )
 				{
 					// if next line is less indented or equal, then it means that the current value is null
-					if ( this.isNextLineIndented() )
+					if ( this.isNextLineIndented() && !this.isNextLineUnIndentedCollection() )
 					{
 						data[key] = null;
 					}
@@ -211,18 +237,26 @@ YamlParser.prototype =
 				// 1-liner followed by newline
 				if ( 2 == this.lines.length && this.isEmpty(this.lines[1]) )
 				{
-					value = (new YamlInline()).load(this.lines[0]);
+					try {
+						value = new YamlInline().parse(this.lines[0]);
+					} catch (e) {
+						if ( e instanceof YamlParseException ) {
+							e.setParsedLine(this.getRealCurrentLineNb() + 1);
+							e.setSnippet(this.currentLine);
+						}
+						throw e;
+					}
 					
 					if ( this.isObject(value) )
 					{
 						first = value[0];
-						if ( '*' == (first+'').substr(0, 1) )
+						if ( typeof(value) == 'string' && '*' == first.charAt(0) )
 						{
 							data = [];
 							len = value.length;
 							for ( var i = 0; i < len; i++ )
 							{
-								data.push(this.refs[value[i].substring(1)]);
+								data.push(this.refs[value[i].substr(1)]);
 							}
 							value = data;
 						}
@@ -231,7 +265,7 @@ YamlParser.prototype =
 					return value;
 				}
 				
-				throw new InvalidArgumentException('"'+this.currentLine+'" at line '+(this.getRealCurrentLineNb() + 1));
+				throw new YamlParseException('Unable to parse.', this.getRealCurrentLineNb() + 1, this.currentLine);
 			}
 		
 			if ( isRef )
@@ -279,6 +313,8 @@ YamlParser.prototype =
 	 * @param integer indentation The indent level at which the block is to be read, or null for default
 	 *
 	 * @return string A YAML string
+	 *
+	 * @throws YamlParseException When indentation problem are detected
 	 */
 	getNextEmbedBlock: function(indentation)
 	{
@@ -289,10 +325,12 @@ YamlParser.prototype =
 		if ( !this.isDefined(indentation) )
 		{
 			newIndent = this.getCurrentLineIndentation();
+			
+			var unindentedEmbedBlock = this.isStringUnIndentedCollectionItem(this.currentLine);
 
-			if ( !this.isCurrentLineEmpty() && 0 == newIndent )
+			if ( !this.isCurrentLineEmpty() && 0 == newIndent && !unindentedEmbedBlock )
 			{
-				throw new InvalidArgumentException('A Indentation problem at line '+(this.getRealCurrentLineNb() + 1)+' ('+this.currentLine+')');
+				throw new YamlParseException('Indentation problem A', this.getRealCurrentLineNb() + 1, this.currentLine);
 			}
 		}
 		else
@@ -300,30 +338,38 @@ YamlParser.prototype =
 			newIndent = indentation;
 		}
 
-		var data = [this.currentLine.substring(newIndent)];
+		var data = [this.currentLine.substr(newIndent)];
+
+		var isItUnindentedCollection = this.isStringUnIndentedCollectionItem(this.currentLine);
 
 		while ( this.moveToNextLine() )
 		{
+
+			if (isItUnindentedCollection && !this.isStringUnIndentedCollectionItem(this.currentLine)) {
+				this.moveToPreviousLine();
+				break;
+			}
+
 			if ( this.isCurrentLineEmpty() )
 			{
 				if ( this.isCurrentLineBlank() )
 				{
-					data.push(this.currentLine.substring(newIndent));
+					data.push(this.currentLine.substr(newIndent));
 				}
 
 				continue;
 			}
 
 			indent = this.getCurrentLineIndentation();
-			var match;
-			if ( match = /^( *)$/.exec(this.currentLine) )
+			var matches;
+			if ( matches = /^( *)$/.exec(this.currentLine) )
 			{
 				// empty line
-				data.push(match[1]);
+				data.push(matches[1]);
 			}
 			else if ( indent >= newIndent )
 			{
-				data.push(this.currentLine.substring(newIndent));
+				data.push(this.currentLine.substr(newIndent));
 			}
 			else if ( 0 == indent )
 			{
@@ -333,7 +379,7 @@ YamlParser.prototype =
 			}
 			else
 			{
-				throw new InvalidArgumentException('B Indentation problem at line '+(this.getRealCurrentLineNb() + 1)+' ('+this.currentLine+')');
+				throw new YamlParseException('Indentation problem B', this.getRealCurrentLineNb() + 1, this.currentLine);
 			}
 		}
 
@@ -342,6 +388,8 @@ YamlParser.prototype =
 
 	/**
 	 * Moves the parser to the next line.
+	 *
+	 * @return Boolean
 	 */
 	moveToNextLine: function()
 	{
@@ -371,6 +419,8 @@ YamlParser.prototype =
 	 * @param string value A YAML value
 	 *
 	 * @return mixed A JS value
+	 *
+	 * @throws YamlParseException When reference does not exist
 	 */
 	parseValue: function(value)
 	{
@@ -382,12 +432,12 @@ YamlParser.prototype =
 			}
 			else
 			{
-				value = (value+'').substring(1);
+				value = (value+'').substr(1);
 			}
 
 			if ( this.refs[value] == undefined )
 			{
-				throw new InvalidArgumentException('Reference "'+value+'" does not exist ('+this.currentLine+').');
+				throw new YamlParseException('Reference "'+value+'" does not exist', this.getRealCurrentLineNb() + 1, this.currentLine);
 			}
 			return this.refs[value];
 		}
@@ -400,9 +450,14 @@ YamlParser.prototype =
 
 			return this.parseFoldedScalar(matches.separator, modifiers.replace(/\d+/g, ''), Math.abs(parseInt(modifiers)));
 		}
-		else
-		{
-			return (new YamlInline()).load(value);
+		try {
+			return new YamlInline().parse(value);
+		} catch (e) {
+			if ( e instanceof YamlParseException ) {
+				e.setParsedLine(this.getRealCurrentLineNb() + 1);
+				e.setSnippet(this.currentLine);
+			}
+			throw e;
 		}
 	},
 
@@ -472,7 +527,7 @@ YamlParser.prototype =
 			}
 			else if ( matches = /^( *)$/.exec(this.currentLine) )
 			{
-				text += matches[1].replace(new RegExp('^ {1,'+textIndent.length+'}','g'), '', matches[1])+"\n";
+				text += matches[1].replace(new RegExp('^ {1,'+textIndent.length+'}','g'), '')+"\n";
 			}
 			else
 			{
@@ -551,7 +606,7 @@ YamlParser.prototype =
 	 */
 	isCurrentLineBlank: function()
 	{
-		return '' == this.currentLine.split(' ').join('');
+		return '' == this.trim(this.currentLine);
 	},
 
 	/**
@@ -596,7 +651,7 @@ YamlParser.prototype =
 		regex = /^(#.*?\n)+/;
 		if ( regex.test(value) )
 		{
-			trimmedValue = value.replace(regex, '');
+			var trimmedValue = value.replace(regex, '');
 			
 			// items have been removed, update the offset
 			this.offset += this.subStrCount(value, "\n") - this.subStrCount(trimmedValue, "\n");
@@ -618,6 +673,48 @@ YamlParser.prototype =
 		}
 
 		return value;
+	},
+
+	/**
+	 * Returns true if the next line starts unindented collection
+	 *
+	 * @return Boolean Returns true if the next line starts unindented collection, false otherwise
+	 */
+	isNextLineUnIndentedCollection: function()
+	{
+		var currentIndentation = this.getCurrentLineIndentation();
+		var notEOF = this.moveToNextLine();
+
+		while (notEOF && this.isCurrentLineEmpty()) {
+			notEOF = this.moveToNextLine();
+		}
+
+		if (false === notEOF) {
+			return false;
+		}
+
+		var ret = false;
+		if (
+			this.getCurrentLineIndentation() == currentIndentation
+			&&
+			this.isStringUnIndentedCollectionItem(this.currentLine)
+		) {
+			ret = true;
+		}
+
+		this.moveToPreviousLine();
+
+		return ret;
+	},
+
+	/**
+	 * Returns true if the string is unindented collection item
+	 *
+	 * @return Boolean Returns true if the string is unindented collection item, false otherwise
+	 */
+	isStringUnIndentedCollectionItem: function(string)
+	{
+		return (0 === this.currentLine.indexOf('- '));
 	},
 	
 	isObject: function(input)
@@ -650,16 +747,19 @@ YamlParser.prototype =
 	merge: function(a /* Object */, b /* Object */)
 	{
 		var c = {};
+		var i;
 		
 		for ( i in a )
 		{
-			if ( /^\d+$/.test(i) ) c.push(a);
-			else c[i] = a[i];
+			if ( a.hasOwnProperty(i) )
+				if ( /^\d+$/.test(i) ) c.push(a);
+				else c[i] = a[i];
 		}
 		for ( i in b )
 		{
-			if ( /^\d+$/.test(i) ) c.push(b);
-			else c[i] = b[i];
+			if ( b.hasOwnProperty(i) )
+				if ( /^\d+$/.test(i) ) c.push(b);
+				else c[i] = b[i];
 		}
 		
 		return c;
@@ -670,7 +770,7 @@ YamlParser.prototype =
 		var i;
 		var result = '';
 		for ( i = 0; i < count; i++ ) result += str;
-		return str;
+		return result;
 	},
 	
 	subStrCount: function(string, subString, start, length)
@@ -689,6 +789,7 @@ YamlParser.prototype =
 		{
 			if ( subString == string.substr(i, sublen) )
 				c++;
+				i += sublen - 1;
 		}
 		
 		return c;
@@ -696,6 +797,6 @@ YamlParser.prototype =
 	
 	trim: function(str /* String */)
 	{
-		return (str+'').replace(/^\s+/,'').replace(/\s+$/,'');
+		return (str+'').replace(/^ +/,'').replace(/ +$/,'');
 	}
 };

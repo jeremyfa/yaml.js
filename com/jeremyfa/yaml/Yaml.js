@@ -1,107 +1,80 @@
 /**
- * sfYaml offers convenience methods to load and dump YAML.
+ * Yaml offers convenience methods to parse and dump YAML.
  *
- * @package		symfony
- * @subpackage yaml
- * @author		 Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version		SVN: $Id: sfYaml.class.php 8988 2008-05-15 20:24:26Z fabien $
+ * @author Fabien Potencier <fabien@symfony.com>
+ *
+ * @api
  */
  
 var Yaml = function(){};
 Yaml.prototype =
 {
-	spec: '1.2',
 
 	/**
-	 * Sets the YAML specification version to use.
+	 * Parses YAML into a JS representation.
 	 *
-	 * @param string version The YAML specification version
-	 */
-	setSpecVersion: function(version /* String */)
-	{
-		if ( version != '1.1' && version != '1.2' )
-		{
-			throw new InvalidArgumentException('Version '+version+' of the YAML specifications is not supported');
-		}
-
-		this.spec = version;
-	},
-
-	/**
-	 * Gets the YAML specification version to use.
-	 *
-	 * @return string The YAML specification version
-	 */
-	getSpecVersion: function()
-	{
-		return this.spec;
-	},
-
-	/**
-	 * Loads YAML into a JS representation.
-	 *
-	 * The load method, when supplied with a YAML stream (file),
+	 * The parse method, when supplied with a YAML stream (file),
 	 * will do its best to convert YAML in a file into a JS representation.
 	 *
 	 *	Usage:
 	 *	<code>
-	 *	 obj = yaml.loadFile('config.yml');
+	 *	 obj = yaml.parseFile('config.yml');
 	 *	</code>
 	 *
-	 * @param string input Path of YAML file or string containing YAML
+	 * @param string input Path of YAML file
 	 *
 	 * @return array The YAML converted to a JS representation
 	 *
-	 * @throws InvalidArgumentException If the YAML is not valid
+	 * @throws YamlParseException If the YAML is not valid
 	 */
-	loadFile: function(file /* String */, callback /* Function */)
+	parseFile: function(file /* String */, callback /* Function */)
 	{
 		if ( callback == undefined )
 		{
-			input = this.getFileContents(file);
-			return this.load(input);
+			var input = this.getFileContents(file);
+			var ret = null;
+			try
+			{
+				ret = this.parse(input);
+			}
+			catch ( e )
+			{
+				if ( e instanceof YamlParseException ) {
+					e.setParsedFile(file);
+				}
+				throw e;
+			}
+			return ret;
 		}
 		
 		this.getFileContents(file, function(data)
 		{
-			callback(new Yaml().load(data));
+			callback(new Yaml().parse(data));
 		});
 	},
 
 	/**
-	 * Loads YAML into a JS representation.
+	 * Parses YAML into a JS representation.
 	 *
-	 * The load method, when supplied with a YAML stream (string),
-	 * will do its best to convert YAML in a file into a JS representation.
+	 * The parse method, when supplied with a YAML stream (string),
+	 * will do its best to convert YAML into a JS representation.
 	 *
 	 *	Usage:
 	 *	<code>
-	 *	 obj = yaml.load(...);
+	 *	 obj = yaml.parse(...);
 	 *	</code>
 	 *
-	 * @param string input Path of YAML file or string containing YAML
+	 * @param string input string containing YAML
 	 *
 	 * @return array The YAML converted to a JS representation
 	 *
-	 * @throws InvalidArgumentException If the YAML is not valid
+	 * @throws YamlParseException If the YAML is not valid
 	 */
-	load: function(input /* String */)
+	parse: function(input /* String */)
 	{
 		var yaml = new YamlParser();
-		var ret = null;
 
-		try
-		{
-			ret = yaml.parse(input);
-		}
-		catch ( e )
-		{
-			if ( e.name != undefined && e.name.toString == "TypeError" ) throw e;
-			throw 'Syntax error: '+e.message;
-			//throw new InvalidArgumentException(e.name+' ('+e.lineNumber+') '+e.message);
-		}
-
-		return ret;
+		return yaml.parse(input);
 	},
 
 	/**
@@ -114,12 +87,14 @@ Yaml.prototype =
 	 * @param integer inline The level where you switch to inline YAML
 	 *
 	 * @return string A YAML string representing the original JS representation
-	 */
+    *
+    * @api
+    */
 	dump: function(array, inline)
 	{
 		if ( inline == undefined ) inline = 2;
 
-		yaml = new YamlDumper();
+		var yaml = new YamlDumper();
 
 		return yaml.dump(array, inline);
 	},
@@ -179,25 +154,22 @@ Yaml.prototype =
 
 var YAML =
 {
-	encode: function(input)
+	/*
+	 * @param integer inline The level where you switch to inline YAML
+	 */
+	 
+	encode: function(input, inline)
 	{
-		return new Yaml().dump(input);
+		return new Yaml().dump(input, inline);
 	},
 	
 	decode: function(input)
 	{
-		return new Yaml().load(input);
+		return new Yaml().parse(input);
 	},
 	
 	load: function(file, callback)
 	{
-		return new Yaml().loadFile(file, callback);
+		return new Yaml().parseFile(file, callback);
 	}
 };
-
-if ( typeof(InvalidArgumentException) == 'undefined' )
-	InvalidArgumentException = function(message)
-	{
-		this.name = 'InvalidArgumentException';
-		this.message = message;
-	};

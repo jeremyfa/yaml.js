@@ -2,22 +2,19 @@
 /**
  * YamlDumper dumps JS variables to YAML strings.
  *
- * @package		symfony
- * @subpackage yaml
- * @author		 Fabien Potencier <fabien.potencier@symfony-project.com>
- * @version		SVN: $Id: sfYamlDumper.class.php 10575 2008-08-01 13:08:42Z nicolas $
+ * @author Fabien Potencier <fabien@symfony.com>
  */
-YamlDumper = function(){};
+var YamlDumper = function(){};
 YamlDumper.prototype =
 {
 	/**
-	 * Dumps a PHP value to YAML.
+	 * Dumps a JS value to YAML.
 	 *
-	 * @param	mixed	 $input	The PHP value
-	 * @param	integer $inline The level where you switch to inline YAML
-	 * @param	integer $indent The level o indentation indentation (used internally)
+	 * @param	mixed	 input	The JS value
+	 * @param	integer inline The level where you switch to inline YAML
+	 * @param	integer indent The level o indentation indentation (used internally)
 	 *
-	 * @return string	The YAML representation of the PHP value
+	 * @return string	The YAML representation of the JS value
 	 */
 	dump: function(input, inline, indent)
 	{
@@ -63,17 +60,24 @@ YamlDumper.prototype =
 		var i;
 		var result = '';
 		for ( i = 0; i < count; i++ ) result += str;
-		return str;
+		return result;
 	},
 	
 	isObject: function(input)
 	{
-		return typeof(input) == 'object' && this.isDefined(input);
+		return this.isDefined(input) && typeof(input) == 'object';
 	},
 	
 	isEmpty: function(input)
 	{
-		return input == undefined || input == null || input == '' || input == 0 || input == "0" || input == false;
+		var ret = input == undefined || input == null || input == '' || input == 0 || input == "0" || input == false;
+		if ( !ret && typeof(input) == "object" && !(input instanceof Array)){
+			var propCount = 0;
+			for ( var key in input )
+				if ( input.hasOwnProperty(key) ) propCount++;
+			ret = !propCount;
+		}
+		return ret;
 	},
 	
 	isDefined: function(input)

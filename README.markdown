@@ -1,9 +1,9 @@
 yaml.js
 =======
 
-Standalone JavaScript YAML Parser & Encoder. You don't need any javascript framework to use it.
+Standalone JavaScript YAML 1.2 Parser & Encoder. You don't need any javascript framework to use it.
 
-Mainly inspired from [sfYaml Library](http://components.symfony-project.org/yaml/) (part of the php Symfony components).
+Mainly inspired from [Yaml Component](https://github.com/symfony/Yaml) (part of the php framework Symfony).
 
 How to use
 ----------
@@ -29,4 +29,12 @@ Load yaml file (asynchronous):
 
 Dump native object into yaml string:
 
-    yamlString = YAML.encode(nativeObject);
+    yamlString = YAML.encode(nativeObject[, inline /* @integer depth to start using inline notation at */ ]);
+    
+Important
+---------
+
+Symfony dropped support for YAML 1.1 spec. This means that `yes`, `no` and similar no longer convert to their *boolean* equivalents.
+
+The internal `Yaml().load()` and `Yaml().loadFile()` methods renamed to `Yaml().parse()` and `Yaml().parseFile()` respectively. Exceptions replaced with `YamlParseException` object.
+
