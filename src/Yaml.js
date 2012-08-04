@@ -5,7 +5,8 @@
  *
  * @api
  */
- 
+
+var isNode = false;
 var Yaml = function(){};
 Yaml.prototype =
 {
@@ -29,7 +30,7 @@ Yaml.prototype =
 	 */
 	parseFile: function(file /* String */, callback /* Function */)
 	{
-		if ( callback == undefined )
+		if ( callback == null )
 		{
 			var input = this.getFileContents(file);
 			var ret = null;
@@ -92,7 +93,7 @@ Yaml.prototype =
     */
 	dump: function(array, inline)
 	{
-		if ( inline == undefined ) inline = 2;
+		if ( inline == null ) inline = 2;
 
 		var yaml = new YamlDumper();
 
@@ -124,31 +125,54 @@ Yaml.prototype =
 	
 	getFileContents: function(file, callback)
 	{
-		var request = this.getXHR();
+	    if ( isNode )
+	    {
+	        var fs = require('fs');
+	        if ( callback == null )
+	        {
+	            var data = fs.readFileSync(file);
+	            if (data == null) return null;
+	            return ''+data;
+	        }
+	        else
+	        {
+	            fs.readFile(file, function(err, data)
+	            {
+	                if (err)
+	                    callback(null);
+	                else
+	                    callback(data);
+	            });
+	        }
+	    }
+	    else
+	    {
+    		var request = this.getXHR();
 		
-		// Sync
-		if ( callback == undefined )
-		{
-			request.open('GET', file, false);                  
-			request.send(null);
+    		// Sync
+    		if ( callback == null )
+    		{
+    			request.open('GET', file, false);                  
+    			request.send(null);
 
-			if ( request.status == 200 || request.status == 0 )
-				return request.responseText;
+    			if ( request.status == 200 || request.status == 0 )
+    				return request.responseText;
 			
-			return null;
-		}
+    			return null;
+    		}
 		
-		// Async
-		request.onreadystatechange = function()
-		{
-			if ( request.readyState == 4 )
-				if ( request.status == 200 || request.status == 0 )
-					callback(request.responseText);
-				else
-					callback(null);
-		};
-		request.open('GET', file, true);                  
-		request.send(null);
+    		// Async
+    		request.onreadystatechange = function()
+    		{
+    			if ( request.readyState == 4 )
+    				if ( request.status == 200 || request.status == 0 )
+    					callback(request.responseText);
+    				else
+    					callback(null);
+    		};
+    		request.open('GET', file, true);                  
+    		request.send(null);
+	    }
 	}
 };
 
@@ -158,12 +182,12 @@ var YAML =
 	 * @param integer inline The level where you switch to inline YAML
 	 */
 	 
-	encode: function(input, inline)
+	stringify: function(input, inline)
 	{
 		return new Yaml().dump(input, inline);
 	},
 	
-	decode: function(input)
+	parse: function(input)
 	{
 		return new Yaml().parse(input);
 	},
@@ -173,3 +197,26 @@ var YAML =
 		return new Yaml().parseFile(file, callback);
 	}
 };
+
+// Handle node.js case
+if (typeof exports !== 'undefined') {
+    if (typeof module !== 'undefined' && module.exports) {
+        exports = module.exports = YAML;
+        isNode = true;
+        
+        // Add require handler
+        (function () {
+            var require_handler = function (module, filename) {
+                // fill in result
+                module.exports = YAML.load(filename);
+            };
+
+            // register require extensions only if we're on node.js
+            // hack for browserify
+            if ( undefined !== require.extensions ) {
+                require.extensions['.yml'] = require_handler;
+                require.extensions['.yaml'] = require_handler;
+            }
+        }());
+    }
+}

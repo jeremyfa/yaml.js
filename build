@@ -1,0 +1,41 @@
+#!/bin/sh
+cd `dirname $0`
+
+file="bin/yaml.js"
+
+> $file
+
+echo Compiling $file ...
+
+echo " - LICENSE"
+
+echo "/*" >> $file
+cat LICENSE >> $file
+echo "\n*/" >> $file
+
+echo " - YamlParseException.js"
+cat src/YamlParseException.js >> $file
+echo " - Yaml.js"
+cat src/Yaml.js >> $file
+echo " - YamlInline.js"
+cat src/YamlInline.js >> $file
+echo " - YamlParser.js"
+cat src/YamlParser.js >> $file
+echo " - YamlEscaper.js"
+cat src/YamlEscaper.js >> $file
+echo " - YamlUnescaper.js"
+cat src/YamlUnescaper.js >> $file
+echo " - YamlDumper.js"
+cat src/YamlDumper.js >> $file
+
+file="bin/yaml.min.js"
+
+echo "compressing..."
+echo "/*" > $file
+cat LICENSE >> $file
+echo "\n*/" >> $file
+uglifyjs -nc bin/yaml.js >> $file
+
+echo "yaml.js compiled."
+echo "yaml.min.js compiled."
+

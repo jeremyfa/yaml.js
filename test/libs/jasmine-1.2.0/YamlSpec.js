@@ -5,7 +5,7 @@ describe("YAML parsing", function() {
 		t = YAML.parseTests[i];
 		
 		it(t.title, function() {
-		  expect(YAML.decode(t.input)).toEqual(t.output);
+		  expect(YAML.parse(t.input)).toEqual(t.output);
 		});
 	}
 });
@@ -16,7 +16,7 @@ describe("YAML dumping and parsing", function() {
 		t = YAML.parseTests[i];
 		
 		it(t.title, function() {
-		  expect(YAML.decode(YAML.encode(t.output))).toEqual(t.output);
+		  expect(YAML.parse(YAML.stringify(t.output))).toEqual(t.output);
 		});
 	}
 });

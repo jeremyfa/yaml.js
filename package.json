@@ -1,0 +1,18 @@
+{
+    "name": "yamljs",
+    "version": "0.1.0",
+    "description": "Standalone JavaScript YAML 1.2 Parser & Encoder. Mainly inspired from Yaml Component (part of the php framework Symfony).",
+    "keywords": [
+    "yaml"
+    ],
+    "author": "Jeremy Faivre <contact@jeremyfa.com>",
+    "main": "./bin/yaml.js",
+    "dependencies": {
+    },
+    "devDependencies": {
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/jeremyfa/yaml.js.git"
+    }
+}

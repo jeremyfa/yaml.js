@@ -14,23 +14,43 @@ Import yaml.js in your html page:
 
 Parse yaml string:
 
-    nativeObject = YAML.decode(yamlString);
+    nativeObject = YAML.parse(yamlString);
+
+Dump native object into yaml string:
+
+    yamlString = YAML.stringify(nativeObject[, inline /* @integer depth to start using inline notation at */ ]);
 
 Load yaml file:
 
     nativeObject = YAML.load('file.yml');
 
-Load yaml file (asynchronous):
+Load yaml file:
 
     YAML.load('file.yml', function(result)
     {
-      nativeObject = result;
+        nativeObject = result;
     });
 
-Dump native object into yaml string:
+Use with node.js
+----------------
 
-    yamlString = YAML.encode(nativeObject[, inline /* @integer depth to start using inline notation at */ ]);
+Install module:
+
+    npm install yamljs
+
+Use it:
+
+    YAML = require('yamljs');
     
+    // parse YAML string
+    nativeObject = YAML.parse(yamlString);
+    
+    // Generate YAML
+    yamlString = YAML.stringify(nativeObject, 4);
+    
+    // Load yaml file using require
+    nativeObject = require('./myfile.yml');
+
 Important
 ---------
 
