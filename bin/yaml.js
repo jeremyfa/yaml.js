@@ -19,6 +19,7 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
+(function(){
 /**
  * Exception class thrown when an error occurs during parsing.
  *
@@ -167,7 +168,7 @@ YamlParseException.prototype =
  * @api
  */
 
-var isNode = false;
+var YamlRunningUnderNode = false;
 var Yaml = function(){};
 Yaml.prototype =
 {
@@ -252,11 +253,14 @@ Yaml.prototype =
     *
     * @api
     */
-	dump: function(array, inline)
+	dump: function(array, inline, spaces)
 	{
 		if ( inline == null ) inline = 2;
 
 		var yaml = new YamlDumper();
+		if (spaces) {
+		    yaml.numSpacesForIndentation = spaces;
+		}
 
 		return yaml.dump(array, inline);
 	},
@@ -286,7 +290,7 @@ Yaml.prototype =
 	
 	getFileContents: function(file, callback)
 	{
-	    if ( isNode )
+	    if ( YamlRunningUnderNode )
 	    {
 	        var fs = require('fs');
 	        if ( callback == null )
@@ -343,9 +347,9 @@ var YAML =
 	 * @param integer inline The level where you switch to inline YAML
 	 */
 	 
-	stringify: function(input, inline)
+	stringify: function(input, inline, spaces)
 	{
-		return new Yaml().dump(input, inline);
+		return new Yaml().dump(input, inline, spaces);
 	},
 	
 	parse: function(input)
@@ -363,7 +367,7 @@ var YAML =
 if (typeof exports !== 'undefined') {
     if (typeof module !== 'undefined' && module.exports) {
         exports = module.exports = YAML;
-        isNode = true;
+        YamlRunningUnderNode = true;
         
         // Add require handler
         (function () {
@@ -380,6 +384,12 @@ if (typeof exports !== 'undefined') {
             }
         }());
     }
+}
+
+// Handle browser case
+if ( typeof(window) != "undefined" )
+{
+    window.YAML = YAML;
 }
 
 /**
@@ -1957,11 +1967,12 @@ YamlDumper.prototype =
 	 */
 	dump: function(input, inline, indent)
 	{
-		if ( inline == undefined ) inline = 0;
-		if ( indent == undefined ) indent = 0;
+		if ( inline == null ) inline = 0;
+		if ( indent == null ) indent = 0;
 		var output = '';
 		var prefix = indent ? this.strRepeat(' ', indent) : '';
 		var yaml;
+		if (!this.numSpacesForIndentation) this.numSpacesForIndentation = 2;
 
 		if ( inline <= 0 || !this.isObject(input) || this.isEmpty(input) )
 		{
@@ -1985,7 +1996,7 @@ YamlDumper.prototype =
 						prefix + '' +
 						(isAHash ? yaml.dump(key)+':' : '-') + '' +
 						(willBeInlined ? ' ' : "\n") + '' +
-						this.dump(input[key], inline - 1, (willBeInlined ? 0 : indent + 2)) + '' +
+						this.dump(input[key], inline - 1, (willBeInlined ? 0 : indent + this.numSpacesForIndentation)) + '' +
 						(willBeInlined ? "\n" : '');
 				}
 			}
@@ -2067,3 +2078,4 @@ YamlDumper.prototype =
 		return true;
 	}
 };
+})();

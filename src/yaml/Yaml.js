@@ -6,7 +6,7 @@
  * @api
  */
 
-var isNode = false;
+var YamlRunningUnderNode = false;
 var Yaml = function(){};
 Yaml.prototype =
 {
@@ -91,11 +91,14 @@ Yaml.prototype =
     *
     * @api
     */
-	dump: function(array, inline)
+	dump: function(array, inline, spaces)
 	{
 		if ( inline == null ) inline = 2;
 
 		var yaml = new YamlDumper();
+		if (spaces) {
+		    yaml.numSpacesForIndentation = spaces;
+		}
 
 		return yaml.dump(array, inline);
 	},
@@ -125,7 +128,7 @@ Yaml.prototype =
 	
 	getFileContents: function(file, callback)
 	{
-	    if ( isNode )
+	    if ( YamlRunningUnderNode )
 	    {
 	        var fs = require('fs');
 	        if ( callback == null )
@@ -182,9 +185,9 @@ var YAML =
 	 * @param integer inline The level where you switch to inline YAML
 	 */
 	 
-	stringify: function(input, inline)
+	stringify: function(input, inline, spaces)
 	{
-		return new Yaml().dump(input, inline);
+		return new Yaml().dump(input, inline, spaces);
 	},
 	
 	parse: function(input)
@@ -202,7 +205,7 @@ var YAML =
 if (typeof exports !== 'undefined') {
     if (typeof module !== 'undefined' && module.exports) {
         exports = module.exports = YAML;
-        isNode = true;
+        YamlRunningUnderNode = true;
         
         // Add require handler
         (function () {
@@ -219,4 +222,10 @@ if (typeof exports !== 'undefined') {
             }
         }());
     }
+}
+
+// Handle browser case
+if ( typeof(window) != "undefined" )
+{
+    window.YAML = YAML;
 }

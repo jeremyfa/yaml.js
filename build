@@ -1,6 +1,7 @@
 #!/bin/sh
 cd `dirname $0`
 
+# Generate yaml.js
 file="bin/yaml.js"
 
 > $file
@@ -12,22 +13,26 @@ echo " - LICENSE"
 echo "/*" >> $file
 cat LICENSE >> $file
 echo "\n*/" >> $file
+echo "(function(){" >> $file
 
 echo " - YamlParseException.js"
-cat src/YamlParseException.js >> $file
+cat src/yaml/YamlParseException.js >> $file
 echo " - Yaml.js"
-cat src/Yaml.js >> $file
+cat src/yaml/Yaml.js >> $file
 echo " - YamlInline.js"
-cat src/YamlInline.js >> $file
+cat src/yaml/YamlInline.js >> $file
 echo " - YamlParser.js"
-cat src/YamlParser.js >> $file
+cat src/yaml/YamlParser.js >> $file
 echo " - YamlEscaper.js"
-cat src/YamlEscaper.js >> $file
+cat src/yaml/YamlEscaper.js >> $file
 echo " - YamlUnescaper.js"
-cat src/YamlUnescaper.js >> $file
+cat src/yaml/YamlUnescaper.js >> $file
 echo " - YamlDumper.js"
-cat src/YamlDumper.js >> $file
+cat src/yaml/YamlDumper.js >> $file
 
+echo "})();" >> $file
+
+# Generate yaml.min.js
 file="bin/yaml.min.js"
 
 echo "compressing..."
@@ -38,4 +43,16 @@ uglifyjs -nc bin/yaml.js >> $file
 
 echo "yaml.js compiled."
 echo "yaml.min.js compiled."
+
+# Generate yaml2json
+echo "#!/usr/bin/env node" > bin/yaml2json
+cat src/cli/yaml2json.js >> bin/yaml2json
+chmod +x bin/yaml2json
+echo "yaml2json compiled."
+
+# Generate json2yaml
+echo "#!/usr/bin/env node" > bin/json2yaml
+cat src/cli/json2yaml.js >> bin/json2yaml
+chmod +x bin/json2yaml
+echo "json2yaml compiled."
 

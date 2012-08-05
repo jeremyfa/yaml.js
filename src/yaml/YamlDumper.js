@@ -18,11 +18,12 @@ YamlDumper.prototype =
 	 */
 	dump: function(input, inline, indent)
 	{
-		if ( inline == undefined ) inline = 0;
-		if ( indent == undefined ) indent = 0;
+		if ( inline == null ) inline = 0;
+		if ( indent == null ) indent = 0;
 		var output = '';
 		var prefix = indent ? this.strRepeat(' ', indent) : '';
 		var yaml;
+		if (!this.numSpacesForIndentation) this.numSpacesForIndentation = 2;
 
 		if ( inline <= 0 || !this.isObject(input) || this.isEmpty(input) )
 		{
@@ -46,7 +47,7 @@ YamlDumper.prototype =
 						prefix + '' +
 						(isAHash ? yaml.dump(key)+':' : '-') + '' +
 						(willBeInlined ? ' ' : "\n") + '' +
-						this.dump(input[key], inline - 1, (willBeInlined ? 0 : indent + 2)) + '' +
+						this.dump(input[key], inline - 1, (willBeInlined ? 0 : indent + this.numSpacesForIndentation)) + '' +
 						(willBeInlined ? "\n" : '');
 				}
 			}
