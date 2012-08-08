@@ -137,7 +137,7 @@ YamlParseException.prototype =
 	{
 		this.message = this.rawMessage;
 
-		dot = false;
+		var dot = false;
 		if ('.' === this.message.charAt(this.message.length - 1)) {
 			this.message = this.message.substring(0, this.message.length - 1);
 			dot = true;
