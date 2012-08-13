@@ -427,11 +427,11 @@ YamlInline.prototype =
 				break;
 			default:
 				result = this.parseScalar(value);
+		}
 
-				// some comment can end the scalar
-				if ( value.substr(this.i).replace(/^\s+#.*$/, '') ) {
-					throw new YamlParseException('Unexpected characters near "'+value.substr(this.i)+'".');
-				}				
+		// some comment can end the scalar
+		if ( value.substr(this.i+1).replace(/^\s+#.*$/, '') != '' ) {
+			throw new YamlParseException('Unexpected characters near "'+value.substr(this.i)+'".');
 		}
 
 		return result;

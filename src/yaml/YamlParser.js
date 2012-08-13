@@ -249,7 +249,7 @@ YamlParser.prototype =
 					
 					if ( this.isObject(value) )
 					{
-						first = value[0];
+						var first = value[0];
 						if ( typeof(value) == 'string' && '*' == first.charAt(0) )
 						{
 							data = [];
