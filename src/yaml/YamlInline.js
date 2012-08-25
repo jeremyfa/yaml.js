@@ -269,7 +269,7 @@ YamlInline.prototype =
 				case ' ':
 					break;
 				default:
-					isQuoted = this.inArray(sequence.charAt(i), ['"', "'"]);
+					var isQuoted = this.inArray(sequence.charAt(i), ['"', "'"]);
 					var value = this.parseScalar(sequence, [',', ']'], ['"', "'"], i);
 					i = this.i;
 					
