@@ -430,7 +430,8 @@ YamlInline.prototype =
 		}
 
 		// some comment can end the scalar
-		if ( value.substr(this.i+1).replace(/^\s+#.*$/, '') != '' ) {
+		if ( value.substr(this.i+1).replace(/^\s*#.*$/, '') != '' ) {
+		    console.log("oups "+value.substr(this.i+1));
 			throw new YamlParseException('Unexpected characters near "'+value.substr(this.i)+'".');
 		}
 
