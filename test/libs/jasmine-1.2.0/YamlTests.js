@@ -66,6 +66,16 @@ bar:\n\
 		output: { 'foo' : 'whatever', 'bar' : [ 'uno', 'dos' ] } 
 	},
 	{
+		title: "Unindented Sequence in a Mapping",
+		input:
+'\
+foo:\n\
+- uno: 1\n\
+  dos: 2\n\
+',
+		output: { 'foo' : [ {'uno': 1, 'dos': 2} ] }
+	},
+	{
 		title: "Nested Mappings",
 		input: 
 '\
