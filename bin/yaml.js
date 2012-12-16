@@ -1291,12 +1291,17 @@ YamlParser.prototype =
 
 		var data = [this.currentLine.substr(newIndent)];
 
-		var isItUnindentedCollection = this.isStringUnIndentedCollectionItem(this.currentLine);
+		var isUnindentedCollection = this.isStringUnIndentedCollectionItem(this.currentLine);
+
+		var continuationIndent = -1;
+		if (isUnindentedCollection === true) {
+			continuationIndent = 1 + /^\-((\s+)(.+?))?\s*$/.exec(this.currentLine)[2].length;
+		}
 
 		while ( this.moveToNextLine() )
 		{
 
-			if (isItUnindentedCollection && !this.isStringUnIndentedCollectionItem(this.currentLine)) {
+			if (isUnindentedCollection && !this.isStringUnIndentedCollectionItem(this.currentLine) && this.getCurrentLineIndentation() != continuationIndent) {
 				this.moveToPreviousLine();
 				break;
 			}
