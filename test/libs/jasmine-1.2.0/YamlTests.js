@@ -695,5 +695,22 @@ bar: |\n\
 		} 
 		
 	},
+	{
+		title: "Folded String with hashes",
+		input:
+"\
+foo:\n\
+  bar: |\n\
+    # What is markdown?\n\
+    This is a markdown\n\
+",
+		output:
+		{
+		    'foo':
+		    {
+		   		'bar': "# What is markdown?\nThis is a markdown\n"
+		   	}
+		}
+	},
 	
 ];
