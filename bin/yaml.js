@@ -1311,9 +1311,8 @@ YamlParser.prototype =
 				if ( this.isCurrentLineBlank() )
 				{
 					data.push(this.currentLine.substr(newIndent));
+					continue;
 				}
-
-				continue;
 			}
 
 			indent = this.getCurrentLineIndentation();
