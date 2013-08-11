@@ -144,7 +144,7 @@ Yaml.prototype =
 	                if (err)
 	                    callback(null);
 	                else
-	                    callback(data);
+	                    callback(''+data);
 	            });
 	        }
 	    }
