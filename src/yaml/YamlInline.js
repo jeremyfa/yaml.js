@@ -74,7 +74,7 @@ YamlInline.prototype =
 		if ( yaml.requiresSingleQuoting(value) )
 			return yaml.escapeWithSingleQuotes(value);
 		if ( '' == value )
-			return "";
+			return '""';
 		if ( this.getTimestampRegex().test(value) )
 			return "'"+value+"'";
 		if ( this.inArray(value.toLowerCase(), ['null','~','true','false']) )
