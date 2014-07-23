@@ -224,7 +224,9 @@ YamlParser.prototype =
 				{
 					if ( isInPlace )
 					{
-						data = this.refs[isInPlace];
+					    // when merging objects, need to clone the source object to prevent overrides in
+					    // the target object from affecting the source object.
+						data = JSON.parse(JSON.stringify(this.refs[isInPlace]));
 					}
 					else
 					{
