@@ -334,7 +334,7 @@ class Utils
                 # Sync
                 data = fs.readFileSync path
                 if data?
-                    return ''+data
+                    return String(data)
                 return null
 
 

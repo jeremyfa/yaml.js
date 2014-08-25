@@ -11,7 +11,7 @@ Dumper = (function() {
   Dumper.indentation = 4;
 
   Dumper.prototype.dump = function(input, inline, indent, exceptionOnInvalidType, objectEncoder) {
-    var isAHash, key, output, prefix, value, willBeInlined;
+    var key, output, prefix, value, willBeInlined, _i, _len;
     if (inline == null) {
       inline = 0;
     }
@@ -26,14 +26,21 @@ Dumper = (function() {
     }
     output = '';
     prefix = (indent ? Utils.strRepeat(' ', indent) : '');
-    if (inline <= 0 || typeof input !== 'object' || Utils.isEmpty(input)) {
+    if (inline <= 0 || typeof input !== 'object' || input instanceof Date || Utils.isEmpty(input)) {
       output += prefix + Inline.dump(input, exceptionOnInvalidType, objectEncoder);
     } else {
-      isAHash = !(input instanceof Array);
-      for (key in input) {
-        value = input[key];
-        willBeInlined = inline - 1 <= 0 || typeof value !== 'object' || Utils.isEmpty(value);
-        output += prefix + (isAHash ? Inline.dump(key, exceptionOnInvalidType, objectEncoder) + ':' : '-') + (willBeInlined ? ' ' : "\n") + this.dump(value, inline - 1, (willBeInlined ? 0 : indent + this.indentation), exceptionOnInvalidType, objectEncoder) + (willBeInlined ? "\n" : '');
+      if (input instanceof Array) {
+        for (_i = 0, _len = input.length; _i < _len; _i++) {
+          value = input[_i];
+          willBeInlined = inline - 1 <= 0 || typeof value !== 'object' || Utils.isEmpty(value);
+          output += prefix + '-' + (willBeInlined ? ' ' : "\n") + this.dump(value, inline - 1, (willBeInlined ? 0 : indent + this.indentation), exceptionOnInvalidType, objectEncoder) + (willBeInlined ? "\n" : '');
+        }
+      } else {
+        for (key in input) {
+          value = input[key];
+          willBeInlined = inline - 1 <= 0 || typeof value !== 'object' || Utils.isEmpty(value);
+          output += prefix + Inline.dump(key, exceptionOnInvalidType, objectEncoder) + ':' + (willBeInlined ? ' ' : "\n") + this.dump(value, inline - 1, (willBeInlined ? 0 : indent + this.indentation), exceptionOnInvalidType, objectEncoder) + (willBeInlined ? "\n" : '');
+        }
       }
     }
     return output;
@@ -81,11 +88,13 @@ Escaper = (function() {
   };
 
   Escaper.escapeWithDoubleQuotes = function(value) {
-    return this.PATTERN_MAPPING_ESCAPEES.replace(value, (function(_this) {
+    var result;
+    result = this.PATTERN_MAPPING_ESCAPEES.replace(value, (function(_this) {
       return function(str) {
         return _this.MAPPING_ESCAPEES_TO_ESCAPED[str];
       };
     })(this));
+    return '"' + result + '"';
   };
 
   Escaper.requiresSingleQuoting = function(value) {
@@ -273,10 +282,10 @@ Inline = (function() {
       return (value ? 'true' : 'false');
     }
     if (Utils.isDigits(value)) {
-      return (type === 'string' ? "'" + value + "'" : '' + parseInt(value));
+      return (type === 'string' ? "'" + value + "'" : String(parseInt(value)));
     }
     if (Utils.isNumeric(value)) {
-      return (type === 'string' ? "'" + value + "'" : '' + parseFloat(value));
+      return (type === 'string' ? "'" + value + "'" : String(parseFloat(value)));
     }
     if (type === 'number') {
       return (value === Infinity ? '.Inf' : (value === -Infinity ? '-.Inf' : (isNaN(value) ? '.NaN' : value)));
@@ -285,7 +294,7 @@ Inline = (function() {
       return Escaper.escapeWithDoubleQuotes(value);
     }
     if (Escaper.requiresSingleQuoting(value)) {
-      return yaml.escapeWithSingleQuotes(value);
+      return Escaper.escapeWithSingleQuotes(value);
     }
     if ('' === value) {
       return '""';
@@ -510,7 +519,7 @@ Inline = (function() {
   };
 
   Inline.evaluateScalar = function(scalar, context) {
-    var cast, exceptionOnInvalidType, firstChar, firstSpace, firstWord, objectDecoder, raw, scalarLower, subValue, trimmedScalar;
+    var cast, date, exceptionOnInvalidType, firstChar, firstSpace, firstWord, objectDecoder, raw, scalarLower, subValue, trimmedScalar;
     scalar = Utils.trim(scalar);
     scalarLower = scalar.toLowerCase();
     switch (scalarLower) {
@@ -599,13 +608,15 @@ Inline = (function() {
             if (Utils.isDigits(scalar)) {
               raw = scalar;
               cast = parseInt(raw);
-              if (raw === '' + cast) {
+              if (raw === String(cast)) {
                 return cast;
               } else {
                 return raw;
               }
             } else if (Utils.isNumeric(scalar)) {
               return parseFloat(scalar);
+            } else if (this.PATTERN_THOUSAND_NUMERIC_SCALAR.test(scalar)) {
+              return parseFloat(scalar.replace(',', ''));
             }
             return scalar;
           case '-':
@@ -615,7 +626,7 @@ Inline = (function() {
               } else {
                 raw = scalar.slice(1);
                 cast = parseInt(raw);
-                if (raw === '' + cast) {
+                if (raw === String(cast)) {
                   return -cast;
                 } else {
                   return -raw;
@@ -623,11 +634,17 @@ Inline = (function() {
               }
             } else if (Utils.isNumeric(scalar)) {
               return parseFloat(scalar);
+            } else if (this.PATTERN_THOUSAND_NUMERIC_SCALAR.test(scalar)) {
+              return parseFloat(scalar.replace(',', ''));
             }
             return scalar;
           default:
-            if (Utils.isNumeric(scalar)) {
+            if (date = Utils.stringToDate(scalar)) {
+              return date;
+            } else if (Utils.isNumeric(scalar)) {
               return parseFloat(scalar);
+            } else if (this.PATTERN_THOUSAND_NUMERIC_SCALAR.test(scalar)) {
+              return parseFloat(scalar.replace(',', ''));
             }
             return scalar;
         }
@@ -697,7 +714,7 @@ Parser = (function() {
   }
 
   Parser.prototype.parse = function(value, exceptionOnInvalidType, objectDecoder) {
-    var alias, allowOverwrite, block, c, context, data, e, first, i, indent, isRef, key, lastKey, lineCount, matches, mergeNode, parsed, parsedItem, parser, refName, refValue, val, values, _i, _j, _k, _l, _len, _len1, _len2, _len3, _name, _name1, _ref, _ref1, _ref2;
+    var alias, allowOverwrite, block, c, context, data, e, first, i, indent, isRef, k, key, lastKey, lineCount, matches, mergeNode, parsed, parsedItem, parser, refName, refValue, val, values, _i, _j, _k, _l, _len, _len1, _len2, _len3, _name, _ref, _ref1, _ref2;
     if (exceptionOnInvalidType == null) {
       exceptionOnInvalidType = false;
     }
@@ -786,7 +803,7 @@ Parser = (function() {
             if (refValue instanceof Array) {
               for (i = _i = 0, _len = refValue.length; _i < _len; i = ++_i) {
                 value = refValue[i];
-                if (data[_name = '' + i] == null) {
+                if (data[_name = String(i)] == null) {
                   data[_name] = value;
                 }
               }
@@ -799,7 +816,7 @@ Parser = (function() {
               }
             }
           } else {
-            if (values.value !== '') {
+            if ((values.value != null) && values.value !== '') {
               value = values.value;
             } else {
               value = this.getNextEmbedBlock();
@@ -820,14 +837,15 @@ Parser = (function() {
                 if (parsedItem instanceof Array) {
                   for (i = _k = 0, _len2 = parsedItem.length; _k < _len2; i = ++_k) {
                     value = parsedItem[i];
-                    if (data[_name1 = '' + i] == null) {
-                      data[_name1] = value;
+                    k = String(i);
+                    if (!data.hasOwnProperty(k)) {
+                      data[k] = value;
                     }
                   }
                 } else {
                   for (key in parsedItem) {
                     value = parsedItem[key];
-                    if (data[key] == null) {
+                    if (!data.hasOwnProperty(key)) {
                       data[key] = value;
                     }
                   }
@@ -836,7 +854,7 @@ Parser = (function() {
             } else {
               for (key in parsed) {
                 value = parsed[key];
-                if (data[key] == null) {
+                if (!data.hasOwnProperty(key)) {
                   data[key] = value;
                 }
               }
@@ -1107,14 +1125,16 @@ Parser = (function() {
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         line = _ref[_i];
         if (line.length === 0 || line.charAt(0) === ' ') {
-          newText += line + "\n";
+          newText = Utils.rtrim(newText, ' ') + line + "\n";
         } else {
           newText += line + ' ';
         }
       }
       text = newText;
     }
-    text = Utils.rtrim(text);
+    if ('+' !== indicator) {
+      text = Utils.rtrim(text);
+    }
     if ('' === indicator) {
       text = this.PATTERN_TRAILING_LINES.replace(text, "\n");
     } else if ('-' === indicator) {
@@ -1168,7 +1188,9 @@ Parser = (function() {
 
   Parser.prototype.cleanup = function(value) {
     var count, trimmedValue, _ref, _ref1, _ref2;
-    value = value.replace("\r\n", "\n").replace("\r", "\n");
+    if (value.indexOf("\r") !== -1) {
+      value = value.split("\r\n").join("\n").split("\r").join("\n");
+    }
     count = 0;
     _ref = this.PATTERN_YAML_HEADER.replaceAll(value, ''), value = _ref[0], count = _ref[1];
     this.offset += count;
@@ -1701,7 +1723,7 @@ Utils = (function() {
       } else {
         data = fs.readFileSync(path);
         if (data != null) {
-          return '' + data;
+          return String(data);
         }
         return null;
       }

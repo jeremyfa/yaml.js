@@ -52,8 +52,9 @@ class Escaper
     # @return [String]  The quoted, escaped string
     #
     @escapeWithDoubleQuotes: (value) ->
-        return @PATTERN_MAPPING_ESCAPEES.replace value, (str) =>
+        result = @PATTERN_MAPPING_ESCAPEES.replace value, (str) =>
             return @MAPPING_ESCAPEES_TO_ESCAPED[str]
+        return '"'+result+'"'
 
 
     # Determines if a JavaScript value would require single quoting in YAML.

@@ -103,15 +103,15 @@ class Inline
         if type is 'boolean'
             return (if value then 'true' else 'false')
         if Utils.isDigits(value)
-            return (if type is 'string' then "'"+value+"'" else ''+parseInt(value))
+            return (if type is 'string' then "'"+value+"'" else String(parseInt(value)))
         if Utils.isNumeric(value)
-            return (if type is 'string' then "'"+value+"'" else ''+parseFloat(value))
+            return (if type is 'string' then "'"+value+"'" else String(parseFloat(value)))
         if type is 'number'
             return (if value is Infinity then '.Inf' else (if value is -Infinity then '-.Inf' else (if isNaN(value) then '.NaN' else value)))
         if Escaper.requiresDoubleQuoting value
             return Escaper.escapeWithDoubleQuotes value
         if Escaper.requiresSingleQuoting value
-            return yaml.escapeWithSingleQuotes value
+            return Escaper.escapeWithSingleQuotes value
         if '' is value
             return '""'
         if Utils.PATTERN_DATE.test value
@@ -450,14 +450,14 @@ class Inline
                         if Utils.isDigits scalar
                             raw = scalar
                             cast = parseInt(raw)
-                            if raw is ''+cast
+                            if raw is String(cast)
                                 return cast
                             else
                                 return raw
                         else if Utils.isNumeric scalar
                             return parseFloat scalar
-                        #else if @PATTERN_THOUSAND_NUMERIC_SCALAR.test scalar
-                        #    return parseFloat(scalar.replace(',', ''))
+                        else if @PATTERN_THOUSAND_NUMERIC_SCALAR.test scalar
+                            return parseFloat(scalar.replace(',', ''))
                         return scalar
                     when '-'
                         if Utils.isDigits(scalar[1..])
@@ -466,20 +466,22 @@ class Inline
                             else
                                 raw = scalar[1..]
                                 cast = parseInt(raw)
-                                if raw is ''+cast
+                                if raw is String(cast)
                                     return -cast
                                 else
                                     return -raw
                         else if Utils.isNumeric scalar
                             return parseFloat scalar
-                        #else if @PATTERN_THOUSAND_NUMERIC_SCALAR.test scalar
-                        #    return parseFloat(scalar.replace(',', ''))
+                        else if @PATTERN_THOUSAND_NUMERIC_SCALAR.test scalar
+                            return parseFloat(scalar.replace(',', ''))
                         return scalar
                     else
-                        if Utils.isNumeric(scalar)
+                        if date = Utils.stringToDate(scalar)
+                            return date
+                        else if Utils.isNumeric(scalar)
                             return parseFloat scalar
-                        #else if @PATTERN_THOUSAND_NUMERIC_SCALAR.test scalar
-                        #    return parseFloat(scalar.replace(',', ''))
+                        else if @PATTERN_THOUSAND_NUMERIC_SCALAR.test scalar
+                            return parseFloat(scalar.replace(',', ''))
                         return scalar
 
 module.exports = Inline

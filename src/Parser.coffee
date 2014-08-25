@@ -140,14 +140,14 @@ class Parser
                         if refValue instanceof Array
                             # Merge array with object
                             for value, i in refValue
-                                data[''+i] ?= value
+                                data[String(i)] ?= value
                         else
                             # Merge objects
                             for key, value of refValue
                                 data[key] ?= value
 
                     else
-                        if values.value isnt ''
+                        if values.value? and values.value isnt ''
                             value = values.value
                         else
                             value = @getNextEmbedBlock()
@@ -171,17 +171,21 @@ class Parser
                                 if parsedItem instanceof Array
                                     # Merge array with object
                                     for value, i in parsedItem
-                                        data[''+i] ?= value
+                                        k = String(i)
+                                        unless data.hasOwnProperty(k)
+                                            data[k] = value
                                 else
                                     # Merge objects
                                     for key, value of parsedItem
-                                        data[key] ?= value
+                                        unless data.hasOwnProperty(key)
+                                            data[key] = value
                             
                         else
                             # If the value associated with the key is a single mapping node, each of its key/value pairs is inserted into the
                             # current mapping, unless the key already exists in it.
                             for key, value of parsed
-                                data[key] ?= value
+                                unless data.hasOwnProperty(key)
+                                    data[key] = value
 
                 else if values.value? and matches = @PATTERN_ANCHOR_VALUE.exec values.value
                     isRef = matches.ref
@@ -493,13 +497,14 @@ class Parser
             newText = ''
             for line in text.split "\n"
                 if line.length is 0 or line.charAt(0) is ' '
-                    newText += line + "\n"
+                    newText = Utils.rtrim(newText, ' ') + line + "\n"
                 else
                     newText += line + ' '
             text = newText
 
-        # Remove any extra space or new line as we are adding them after
-        text = Utils.rtrim(text)
+        if '+' isnt indicator
+            # Remove any extra space or new line as we are adding them after
+            text = Utils.rtrim(text)
 
         # Deal with trailing newlines as indicated
         if '' is indicator
@@ -572,7 +577,8 @@ class Parser
     # @return [String]  A cleaned up YAML string
     #
     cleanup: (value) ->
-        value = value.replace("\r\n", "\n").replace("\r", "\n")
+        if value.indexOf("\r") isnt -1
+            value = value.split("\r\n").join("\n").split("\r").join("\n")
 
         # Strip YAML header
         count = 0

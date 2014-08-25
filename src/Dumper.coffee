@@ -24,21 +24,31 @@ class Dumper
         output = ''
         prefix = (if indent then Utils.strRepeat(' ', indent) else '')
 
-        if inline <= 0 or typeof(input) isnt 'object' or Utils.isEmpty(input)
+        if inline <= 0 or typeof(input) isnt 'object' or input instanceof Date or Utils.isEmpty(input)
             output += prefix + Inline.dump(input, exceptionOnInvalidType, objectEncoder)
         
         else
-            isAHash = not(input instanceof Array)
+            if input instanceof Array
+                for value in input
+                    willBeInlined = (inline - 1 <= 0 or typeof(value) isnt 'object' or Utils.isEmpty(value))
 
-            for key, value of input
-                willBeInlined = (inline - 1 <= 0 or typeof(value) isnt 'object' or Utils.isEmpty(value))
+                    output +=
+                        prefix +
+                        '-' +
+                        (if willBeInlined then ' ' else "\n") +
+                        @dump(value, inline - 1, (if willBeInlined then 0 else indent + @indentation), exceptionOnInvalidType, objectEncoder) +
+                        (if willBeInlined then "\n" else '')
 
-                output +=
-                    prefix +
-                    (if isAHash then Inline.dump(key, exceptionOnInvalidType, objectEncoder) + ':' else '-') +
-                    (if willBeInlined then ' ' else "\n") +
-                    @dump(value, inline - 1, (if willBeInlined then 0 else indent + @indentation), exceptionOnInvalidType, objectEncoder) +
-                    (if willBeInlined then "\n" else '')
+            else
+                for key, value of input
+                    willBeInlined = (inline - 1 <= 0 or typeof(value) isnt 'object' or Utils.isEmpty(value))
+
+                    output +=
+                        prefix +
+                        Inline.dump(key, exceptionOnInvalidType, objectEncoder) + ':' +
+                        (if willBeInlined then ' ' else "\n") +
+                        @dump(value, inline - 1, (if willBeInlined then 0 else indent + @indentation), exceptionOnInvalidType, objectEncoder) +
+                        (if willBeInlined then "\n" else '')
 
         return output
 
