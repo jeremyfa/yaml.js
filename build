@@ -39,7 +39,7 @@ echo "compressing..."
 echo "/*" > $file
 cat LICENSE >> $file
 echo "\n*/" >> $file
-uglifyjs -nc bin/yaml.js >> $file
+uglifyjs bin/yaml.js -nc >> $file
 
 echo "yaml.js compiled."
 echo "yaml.min.js compiled."
