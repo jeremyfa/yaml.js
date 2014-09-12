@@ -694,6 +694,21 @@ bar: |\n\
 		   'bar' : "fooness\n" 
 		} 
 		
+	{
+		title: "Merging Hashes with Inheritance",
+		input:
+"\
+source: &source\n\
+    foo: bar\n\
+target:\n\
+    <<: *source\n\
+    foo: qux\n\
+",
+		output: {
+		    'source' : { 'foo': 'bar' },
+		    'target' : { 'foo': 'qux' }
+		}
+
 	},
 	
 ];
