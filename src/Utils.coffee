@@ -328,7 +328,7 @@ class Utils
                     if err
                         callback null
                     else
-                        callback data
+                        callback String(data)
 
             else
                 # Sync

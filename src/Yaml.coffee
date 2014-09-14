@@ -49,9 +49,11 @@ class Yaml
         if callback?
             # Async
             Utils.getStringFromFile path, (input) =>
+                result = null
                 if input?
-                    return @parse input, exceptionOnInvalidType, objectDecoder
-                return null
+                    result = @parse input, exceptionOnInvalidType, objectDecoder
+                callback result
+                return
         else
             # Sync
             input = Utils.getStringFromFile path
@@ -96,13 +98,13 @@ class Yaml
 
     # Alias of dump() method for compatibility reasons.
     #
-    stringify: (input, inline, indent, exceptionOnInvalidType, objectEncoder) ->
+    @stringify: (input, inline, indent, exceptionOnInvalidType, objectEncoder) ->
         return @dump input, inline, indent, exceptionOnInvalidType, objectEncoder
 
 
     # Alias of parseFile() method for compatibility reasons.
     #
-    load: (path, callback, exceptionOnInvalidType, objectDecoder) ->
+    @load: (path, callback, exceptionOnInvalidType, objectDecoder) ->
         return @parseFile path, callback, exceptionOnInvalidType, objectDecoder
 
 

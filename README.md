@@ -61,9 +61,6 @@ nativeObject = YAML.parse(yamlString);
 // Generate YAML
 yamlString = YAML.stringify(nativeObject, 4);
 
-// Load yaml file using require
-nativeObject = require('./myfile.yml');
-
 // Load yaml file using YAML.load
 nativeObject = YAML.load('myfile.yml');
 ```
@@ -152,12 +149,4 @@ json2yaml myfile.json --indentation 4
 
 # Watch a full directory and convert any JSON file into its YAML equivalent
 json2yaml mydirectory --pretty --save --recursive
-```
-
-Important
----------
-
-Symfony dropped support for YAML 1.1 spec. This means that `yes`, `no` and similar no longer convert to their *boolean* equivalents.
-
-The internal `Yaml().load()` and `Yaml().loadFile()` methods renamed to `Yaml().parse()` and `Yaml().parseFile()` respectively. Exceptions replaced with `YamlParseException` object.
 

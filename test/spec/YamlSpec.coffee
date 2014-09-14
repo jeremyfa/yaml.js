@@ -1266,10 +1266,39 @@ describe 'Dumped YAML Documents', ->
            bar: "fooness\n"
         )
 
+
 # Loading
+# (disable test when running locally from file)
 #
+url = document?.location?.href
+if not(url?) or url.indexOf('file://') is -1
+
+    examplePath = 'spec/example.yml'
+    if __dirname?
+        examplePath = __dirname+'/example.yml'
+
+    describe 'YAML loading', ->
+
+        it 'can be done synchronously', ->
+
+            expect(YAML.load(examplePath)).toEqual (
+                this: 'is'
+                a: ['YAML', 'example']
+            )
 
 
+        it 'can be done asynchronously', (done) ->
+
+            YAML.load examplePath, (result) ->
+
+                console.log result
+
+                expect(result).toEqual (
+                    this: 'is'
+                    a: ['YAML', 'example']
+                )
+
+                done()
 
 
 
