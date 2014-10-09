@@ -385,6 +385,10 @@ if (typeof exports !== 'undefined') {
         }());
     }
 }
+else
+{
+    this['YAML'] = YAML;
+}
 
 // Handle browser case
 if ( typeof(window) != "undefined" )
