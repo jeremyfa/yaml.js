@@ -209,11 +209,16 @@ Yaml.prototype =
 			}
 			return ret;
 		}
-		
-		this.getFileContents(file, function(data)
+
+		this.getFileContents(file, function(err, data)
 		{
-			callback(new Yaml().parse(data));
-		});
+			if (err) return callback(err);
+
+			ret = this.parse(data);
+
+			callback(null, ret);
+
+		}.bind(this));
 	},
 
 	/**
@@ -301,12 +306,13 @@ Yaml.prototype =
 	        }
 	        else
 	        {
-	            fs.readFile(file, function(err, data)
+  						fs.readFile(file, function(err, data)
 	            {
-	                if (err)
-	                    callback(null);
-	                else
-	                    callback(data);
+	            		if (err) {
+	                    callback(err);
+	                } else {
+	                		callback(null, ''+data);
+	                }
 	            });
 	        }
 	    }
