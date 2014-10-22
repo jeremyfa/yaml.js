@@ -102,7 +102,7 @@ Escaper = (function() {
   };
 
   Escaper.escapeWithSingleQuotes = function(value) {
-    return "'" + value.replace('\'', '\'\'') + "'";
+    return "'" + value.replace(/'/g, "''") + "'";
   };
 
   return Escaper;
