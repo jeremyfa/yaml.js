@@ -74,7 +74,7 @@ class Escaper
     # @return [String]  The quoted, escaped string
     #
     @escapeWithSingleQuotes: (value) ->
-        return "'"+value.replace('\'', '\'\'')+"'"
+        return "'"+value.replace(/'/g, "''")+"'"
 
 
 module.exports = Escaper
