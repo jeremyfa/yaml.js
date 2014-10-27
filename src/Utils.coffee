@@ -32,19 +32,19 @@ class Utils
     # Trims the given string on both sides
     #
     # @param [String] str The string to trim
-    # @param [String] char The character to use for trimming (default: '\\s')
+    # @param [String] _char The character to use for trimming (default: '\\s')
     #
     # @return [String] A trimmed string
     #
-    @trim: (str, char = '\\s') ->
+    @trim: (str, _char = '\\s') ->
         return str.trim()
-        regexLeft = @REGEX_LEFT_TRIM_BY_CHAR[char]
+        regexLeft = @REGEX_LEFT_TRIM_BY_CHAR[_char]
         unless regexLeft?
-            @REGEX_LEFT_TRIM_BY_CHAR[char] = regexLeft = new RegExp '^'+char+''+char+'*'
+            @REGEX_LEFT_TRIM_BY_CHAR[_char] = regexLeft = new RegExp '^'+_char+''+_char+'*'
         regexLeft.lastIndex = 0
-        regexRight = @REGEX_RIGHT_TRIM_BY_CHAR[char]
+        regexRight = @REGEX_RIGHT_TRIM_BY_CHAR[_char]
         unless regexRight?
-            @REGEX_RIGHT_TRIM_BY_CHAR[char] = regexRight = new RegExp char+''+char+'*$'
+            @REGEX_RIGHT_TRIM_BY_CHAR[_char] = regexRight = new RegExp _char+''+_char+'*$'
         regexRight.lastIndex = 0
         return str.replace(regexLeft, '').replace(regexRight, '')
 
@@ -52,14 +52,14 @@ class Utils
     # Trims the given string on the left side
     #
     # @param [String] str The string to trim
-    # @param [String] char The character to use for trimming (default: '\\s')
+    # @param [String] _char The character to use for trimming (default: '\\s')
     #
     # @return [String] A trimmed string
     #
-    @ltrim: (str, char = '\\s') ->
-        regexLeft = @REGEX_LEFT_TRIM_BY_CHAR[char]
+    @ltrim: (str, _char = '\\s') ->
+        regexLeft = @REGEX_LEFT_TRIM_BY_CHAR[_char]
         unless regexLeft?
-            @REGEX_LEFT_TRIM_BY_CHAR[char] = regexLeft = new RegExp '^'+char+''+char+'*'
+            @REGEX_LEFT_TRIM_BY_CHAR[_char] = regexLeft = new RegExp '^'+_char+''+_char+'*'
         regexLeft.lastIndex = 0
         return str.replace(regexLeft, '')
 
@@ -67,14 +67,14 @@ class Utils
     # Trims the given string on the right side
     #
     # @param [String] str The string to trim
-    # @param [String] char The character to use for trimming (default: '\\s')
+    # @param [String] _char The character to use for trimming (default: '\\s')
     #
     # @return [String] A trimmed string
     #
-    @rtrim: (str, char = '\\s') ->
-        regexRight = @REGEX_RIGHT_TRIM_BY_CHAR[char]
+    @rtrim: (str, _char = '\\s') ->
+        regexRight = @REGEX_RIGHT_TRIM_BY_CHAR[_char]
         unless regexRight?
-            @REGEX_RIGHT_TRIM_BY_CHAR[char] = regexRight = new RegExp char+''+char+'*$'
+            @REGEX_RIGHT_TRIM_BY_CHAR[_char] = regexRight = new RegExp _char+''+_char+'*$'
         regexRight.lastIndex = 0
         return str.replace(regexRight, '')
 
