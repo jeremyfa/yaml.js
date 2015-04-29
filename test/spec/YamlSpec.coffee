@@ -164,6 +164,15 @@ describe 'Parsed YAML Inline Collections', ->
         .toEqual hash: (name: 'Steve', foo: 'bar')
 
 
+    it 'can be nested inline hash', ->
+
+        expect YAML.parse """
+        ---
+        hash: { val1: "string", val2: { v2k1: "v2k1v" } }
+        """
+        .toEqual hash: (val1: 'string', val2: (v2k1: 'v2k1v'))
+
+
     it 'can be multi-line inline collections', ->
 
         expect YAML.parse """
@@ -1297,14 +1306,3 @@ if not(url?) or url.indexOf('file://') is -1
                 )
 
                 done()
-
-
-
-
-
-
-
-
-
-
-

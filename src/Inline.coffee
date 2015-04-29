@@ -338,7 +338,7 @@ class Inline
                         done = true
                     when '{'
                         # Nested mapping
-                        $value = @parseMapping mapping, context
+                        value = @parseMapping mapping, context
                         {i} = context
                         # Spec: Keys MUST be unique; first one wins.
                         # Parser cannot abort this mapping earlier, since lines
@@ -432,7 +432,7 @@ class Inline
                                         unless subValue.length > 0
                                             subValue = null
                                         return objectDecoder trimmedScalar[0...firstSpace], subValue
-                                        
+
                                 if exceptionOnInvalidType
                                     throw new ParseException 'Custom object support when parsing a YAML file has been disabled.'
 

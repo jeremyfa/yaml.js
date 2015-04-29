@@ -11,7 +11,7 @@ Dumper = (function() {
   Dumper.indentation = 4;
 
   Dumper.prototype.dump = function(input, inline, indent, exceptionOnInvalidType, objectEncoder) {
-    var key, output, prefix, value, willBeInlined, _i, _len;
+    var i, key, len, output, prefix, value, willBeInlined;
     if (inline == null) {
       inline = 0;
     }
@@ -30,8 +30,8 @@ Dumper = (function() {
       output += prefix + Inline.dump(input, exceptionOnInvalidType, objectEncoder);
     } else {
       if (input instanceof Array) {
-        for (_i = 0, _len = input.length; _i < _len; _i++) {
-          value = input[_i];
+        for (i = 0, len = input.length; i < len; i++) {
+          value = input[i];
           willBeInlined = inline - 1 <= 0 || typeof value !== 'object' || Utils.isEmpty(value);
           output += prefix + '-' + (willBeInlined ? ' ' : "\n") + this.dump(value, inline - 1, (willBeInlined ? 0 : indent + this.indentation), exceptionOnInvalidType, objectEncoder) + (willBeInlined ? "\n" : '');
         }
@@ -69,9 +69,9 @@ Escaper = (function() {
   Escaper.LIST_ESCAPED = ['\\"', '\\\\', '\\"', "\\0", "\\x01", "\\x02", "\\x03", "\\x04", "\\x05", "\\x06", "\\a", "\\b", "\\t", "\\n", "\\v", "\\f", "\\r", "\\x0e", "\\x0f", "\\x10", "\\x11", "\\x12", "\\x13", "\\x14", "\\x15", "\\x16", "\\x17", "\\x18", "\\x19", "\\x1a", "\\e", "\\x1c", "\\x1d", "\\x1e", "\\x1f", "\\N", "\\_", "\\L", "\\P"];
 
   Escaper.MAPPING_ESCAPEES_TO_ESCAPED = (function() {
-    var i, mapping, _i, _ref;
+    var i, j, mapping, ref;
     mapping = {};
-    for (i = _i = 0, _ref = Escaper.LIST_ESCAPEES.length; 0 <= _ref ? _i < _ref : _i > _ref; i = 0 <= _ref ? ++_i : --_i) {
+    for (i = j = 0, ref = Escaper.LIST_ESCAPEES.length; 0 <= ref ? j < ref : j > ref; i = 0 <= ref ? ++j : --j) {
       mapping[Escaper.LIST_ESCAPEES[i]] = Escaper.LIST_ESCAPED[i];
     }
     return mapping;
@@ -115,11 +115,11 @@ module.exports = Escaper;
 
 },{"./Pattern":7}],3:[function(require,module,exports){
 var DumpException,
-  __hasProp = {}.hasOwnProperty,
-  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+  hasProp = {}.hasOwnProperty;
 
-DumpException = (function(_super) {
-  __extends(DumpException, _super);
+DumpException = (function(superClass) {
+  extend(DumpException, superClass);
 
   function DumpException(message, parsedLine, snippet) {
     this.message = message;
@@ -145,11 +145,11 @@ module.exports = DumpException;
 
 },{}],4:[function(require,module,exports){
 var ParseException,
-  __hasProp = {}.hasOwnProperty,
-  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+  extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
+  hasProp = {}.hasOwnProperty;
 
-ParseException = (function(_super) {
-  __extends(ParseException, _super);
+ParseException = (function(superClass) {
+  extend(ParseException, superClass);
 
   function ParseException(message, parsedLine, snippet) {
     this.message = message;
@@ -175,7 +175,7 @@ module.exports = ParseException;
 
 },{}],5:[function(require,module,exports){
 var DumpException, Escaper, Inline, ParseException, Pattern, Unescaper, Utils,
-  __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
+  indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 Pattern = require('./Pattern');
 
@@ -256,7 +256,7 @@ Inline = (function() {
   };
 
   Inline.dump = function(value, exceptionOnInvalidType, objectEncoder) {
-    var result, type, _ref;
+    var ref, result, type;
     if (exceptionOnInvalidType == null) {
       exceptionOnInvalidType = false;
     }
@@ -302,21 +302,21 @@ Inline = (function() {
     if (Utils.PATTERN_DATE.test(value)) {
       return "'" + value + "'";
     }
-    if ((_ref = value.toLowerCase()) === 'null' || _ref === '~' || _ref === 'true' || _ref === 'false') {
+    if ((ref = value.toLowerCase()) === 'null' || ref === '~' || ref === 'true' || ref === 'false') {
       return "'" + value + "'";
     }
     return value;
   };
 
   Inline.dumpObject = function(value, exceptionOnInvalidType, objectSupport) {
-    var key, output, val, _i, _len;
+    var j, key, len1, output, val;
     if (objectSupport == null) {
       objectSupport = null;
     }
     if (value instanceof Array) {
       output = [];
-      for (_i = 0, _len = value.length; _i < _len; _i++) {
-        val = value[_i];
+      for (j = 0, len1 = value.length; j < len1; j++) {
+        val = value[j];
         output.push(this.dump(val));
       }
       return '[' + output.join(', ') + ']';
@@ -331,7 +331,7 @@ Inline = (function() {
   };
 
   Inline.parseScalar = function(scalar, delimiters, stringDelimiters, context, evaluate) {
-    var i, joinedDelimiters, match, output, pattern, strpos, tmp, _ref, _ref1;
+    var i, joinedDelimiters, match, output, pattern, ref, ref1, strpos, tmp;
     if (delimiters == null) {
       delimiters = null;
     }
@@ -352,12 +352,12 @@ Inline = (function() {
       };
     }
     i = context.i;
-    if (_ref = scalar.charAt(i), __indexOf.call(stringDelimiters, _ref) >= 0) {
+    if (ref = scalar.charAt(i), indexOf.call(stringDelimiters, ref) >= 0) {
       output = this.parseQuotedScalar(scalar, context);
       i = context.i;
       if (delimiters != null) {
         tmp = Utils.ltrim(scalar.slice(i), ' ');
-        if (!(_ref1 = tmp.charAt(0), __indexOf.call(delimiters, _ref1) >= 0)) {
+        if (!(ref1 = tmp.charAt(0), indexOf.call(delimiters, ref1) >= 0)) {
           throw new ParseException('Unexpected characters (' + scalar.slice(i) + ').');
         }
       }
@@ -409,7 +409,7 @@ Inline = (function() {
   };
 
   Inline.parseSequence = function(sequence, context) {
-    var e, i, isQuoted, len, output, value, _ref;
+    var e, i, isQuoted, len, output, ref, value;
     output = [];
     len = sequence.length;
     i = context.i;
@@ -432,7 +432,7 @@ Inline = (function() {
         case "\n":
           break;
         default:
-          isQuoted = ((_ref = sequence.charAt(i)) === '"' || _ref === "'");
+          isQuoted = ((ref = sequence.charAt(i)) === '"' || ref === "'");
           value = this.parseScalar(sequence, [',', ']'], ['"', "'"], context);
           i = context.i;
           if (!isQuoted && typeof value === 'string' && (value.indexOf(': ') !== -1 || value.indexOf(":\n") !== -1)) {
@@ -451,7 +451,7 @@ Inline = (function() {
   };
 
   Inline.parseMapping = function(mapping, context) {
-    var $value, done, i, key, len, output, shouldContinueWhileLoop, value;
+    var done, i, key, len, output, shouldContinueWhileLoop, value;
     output = {};
     len = mapping.length;
     i = context.i;
@@ -489,7 +489,7 @@ Inline = (function() {
             done = true;
             break;
           case '{':
-            $value = this.parseMapping(mapping, context);
+            value = this.parseMapping(mapping, context);
             i = context.i;
             if (output[key] === void 0) {
               output[key] = value;
@@ -714,7 +714,7 @@ Parser = (function() {
   }
 
   Parser.prototype.parse = function(value, exceptionOnInvalidType, objectDecoder) {
-    var alias, allowOverwrite, block, c, context, data, e, first, i, indent, isRef, k, key, lastKey, lineCount, matches, mergeNode, parsed, parsedItem, parser, refName, refValue, val, values, _i, _j, _k, _l, _len, _len1, _len2, _len3, _name, _ref, _ref1, _ref2;
+    var alias, allowOverwrite, block, c, context, data, e, first, i, indent, isRef, j, k, key, l, lastKey, len, len1, len2, len3, lineCount, m, matches, mergeNode, n, name, parsed, parsedItem, parser, ref, ref1, ref2, refName, refValue, val, values;
     if (exceptionOnInvalidType == null) {
       exceptionOnInvalidType = false;
     }
@@ -757,7 +757,7 @@ Parser = (function() {
             data.push(null);
           }
         } else {
-          if (((_ref = values.leadspaces) != null ? _ref.length : void 0) && (matches = this.PATTERN_COMPACT_NOTATION.exec(values.value))) {
+          if (((ref = values.leadspaces) != null ? ref.length : void 0) && (matches = this.PATTERN_COMPACT_NOTATION.exec(values.value))) {
             c = this.getRealCurrentLineNb();
             parser = new Parser(c);
             parser.refs = this.refs;
@@ -791,7 +791,7 @@ Parser = (function() {
         if ('<<' === key) {
           mergeNode = true;
           allowOverwrite = true;
-          if (((_ref1 = values.value) != null ? _ref1.indexOf('*') : void 0) === 0) {
+          if (((ref1 = values.value) != null ? ref1.indexOf('*') : void 0) === 0) {
             refName = values.value.slice(1);
             if (this.refs[refName] == null) {
               throw new ParseException('Reference "' + refName + '" does not exist.', this.getRealCurrentLineNb() + 1, this.currentLine);
@@ -801,10 +801,10 @@ Parser = (function() {
               throw new ParseException('YAML merge keys used with a scalar value instead of an object.', this.getRealCurrentLineNb() + 1, this.currentLine);
             }
             if (refValue instanceof Array) {
-              for (i = _i = 0, _len = refValue.length; _i < _len; i = ++_i) {
+              for (i = j = 0, len = refValue.length; j < len; i = ++j) {
                 value = refValue[i];
-                if (data[_name = String(i)] == null) {
-                  data[_name] = value;
+                if (data[name = String(i)] == null) {
+                  data[name] = value;
                 }
               }
             } else {
@@ -829,13 +829,13 @@ Parser = (function() {
               throw new ParseException('YAML merge keys used with a scalar value instead of an object.', this.getRealCurrentLineNb() + 1, this.currentLine);
             }
             if (parsed instanceof Array) {
-              for (_j = 0, _len1 = parsed.length; _j < _len1; _j++) {
-                parsedItem = parsed[_j];
+              for (l = 0, len1 = parsed.length; l < len1; l++) {
+                parsedItem = parsed[l];
                 if (typeof parsedItem !== 'object') {
                   throw new ParseException('Merge items must be objects.', this.getRealCurrentLineNb() + 1, parsedItem);
                 }
                 if (parsedItem instanceof Array) {
-                  for (i = _k = 0, _len2 = parsedItem.length; _k < _len2; i = ++_k) {
+                  for (i = m = 0, len2 = parsedItem.length; m < len2; i = ++m) {
                     value = parsedItem[i];
                     k = String(i);
                     if (!data.hasOwnProperty(k)) {
@@ -908,15 +908,15 @@ Parser = (function() {
             }
             if (typeof first === 'string' && first.indexOf('*') === 0) {
               data = [];
-              for (_l = 0, _len3 = value.length; _l < _len3; _l++) {
-                alias = value[_l];
+              for (n = 0, len3 = value.length; n < len3; n++) {
+                alias = value[n];
                 data.push(this.refs[alias.slice(1)]);
               }
               value = data;
             }
           }
           return value;
-        } else if ((_ref2 = Utils.ltrim(value).charAt(0)) === '[' || _ref2 === '{') {
+        } else if ((ref2 = Utils.ltrim(value).charAt(0)) === '[' || ref2 === '{') {
           try {
             return Inline.parse(value, exceptionOnInvalidType, objectDecoder);
           } catch (_error) {
@@ -1022,7 +1022,7 @@ Parser = (function() {
   };
 
   Parser.prototype.parseValue = function(value, exceptionOnInvalidType, objectDecoder) {
-    var e, foldedIndent, matches, modifiers, pos, val, _ref, _ref1;
+    var e, foldedIndent, matches, modifiers, pos, ref, ref1, val;
     if (0 === value.indexOf('*')) {
       pos = value.indexOf('#');
       if (pos !== -1) {
@@ -1036,7 +1036,7 @@ Parser = (function() {
       return this.refs[value];
     }
     if (matches = this.PATTERN_FOLDED_SCALAR_ALL.exec(value)) {
-      modifiers = (_ref = matches.modifiers) != null ? _ref : '';
+      modifiers = (ref = matches.modifiers) != null ? ref : '';
       foldedIndent = Math.abs(parseInt(modifiers));
       if (isNaN(foldedIndent)) {
         foldedIndent = 0;
@@ -1053,7 +1053,7 @@ Parser = (function() {
       return Inline.parse(value, exceptionOnInvalidType, objectDecoder);
     } catch (_error) {
       e = _error;
-      if (((_ref1 = value.charAt(0)) === '[' || _ref1 === '{') && e instanceof ParseException && this.isNextLineIndented()) {
+      if (((ref1 = value.charAt(0)) === '[' || ref1 === '{') && e instanceof ParseException && this.isNextLineIndented()) {
         value += "\n" + this.getNextEmbedBlock();
         try {
           return Inline.parse(value, exceptionOnInvalidType, objectDecoder);
@@ -1072,7 +1072,7 @@ Parser = (function() {
   };
 
   Parser.prototype.parseFoldedScalar = function(separator, indicator, indentation) {
-    var isCurrentLineBlank, line, matches, newText, notEOF, pattern, text, _i, _len, _ref;
+    var isCurrentLineBlank, j, len, line, matches, newText, notEOF, pattern, ref, text;
     if (indicator == null) {
       indicator = '';
     }
@@ -1121,9 +1121,9 @@ Parser = (function() {
     }
     if ('>' === separator) {
       newText = '';
-      _ref = text.split("\n");
-      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-        line = _ref[_i];
+      ref = text.split("\n");
+      for (j = 0, len = ref.length; j < len; j++) {
+        line = ref[j];
         if (line.length === 0 || line.charAt(0) === ' ') {
           newText = Utils.rtrim(newText, ' ') + line + "\n";
         } else {
@@ -1187,19 +1187,19 @@ Parser = (function() {
   };
 
   Parser.prototype.cleanup = function(value) {
-    var count, trimmedValue, _ref, _ref1, _ref2;
+    var count, ref, ref1, ref2, trimmedValue;
     if (value.indexOf("\r") !== -1) {
       value = value.split("\r\n").join("\n").split("\r").join("\n");
     }
     count = 0;
-    _ref = this.PATTERN_YAML_HEADER.replaceAll(value, ''), value = _ref[0], count = _ref[1];
+    ref = this.PATTERN_YAML_HEADER.replaceAll(value, ''), value = ref[0], count = ref[1];
     this.offset += count;
-    _ref1 = this.PATTERN_LEADING_COMMENTS.replaceAll(value, '', 1), trimmedValue = _ref1[0], count = _ref1[1];
+    ref1 = this.PATTERN_LEADING_COMMENTS.replaceAll(value, '', 1), trimmedValue = ref1[0], count = ref1[1];
     if (count === 1) {
       this.offset += Utils.subStrCount(value, "\n") - Utils.subStrCount(trimmedValue, "\n");
       value = trimmedValue;
     }
-    _ref2 = this.PATTERN_DOCUMENT_MARKER_START.replaceAll(value, '', 1), trimmedValue = _ref2[0], count = _ref2[1];
+    ref2 = this.PATTERN_DOCUMENT_MARKER_START.replaceAll(value, '', 1), trimmedValue = ref2[0], count = ref2[1];
     if (count === 1) {
       this.offset += Utils.subStrCount(value, "\n") - Utils.subStrCount(trimmedValue, "\n");
       value = trimmedValue;
@@ -1316,16 +1316,16 @@ Pattern = (function() {
   }
 
   Pattern.prototype.exec = function(str) {
-    var index, matches, name, _ref;
+    var index, matches, name, ref;
     this.regex.lastIndex = 0;
     matches = this.regex.exec(str);
     if (matches == null) {
       return null;
     }
     if (this.mapping != null) {
-      _ref = this.mapping;
-      for (name in _ref) {
-        index = _ref[name];
+      ref = this.mapping;
+      for (name in ref) {
+        index = ref[name];
         matches[name] = matches[index];
       }
     }
@@ -1525,7 +1525,7 @@ Utils = (function() {
   };
 
   Utils.subStrCount = function(string, subString, start, length) {
-    var c, i, len, sublen, _i;
+    var c, i, j, len, ref, sublen;
     c = 0;
     string = '' + string;
     subString = '' + subString;
@@ -1537,7 +1537,7 @@ Utils = (function() {
     }
     len = string.length;
     sublen = subString.length;
-    for (i = _i = 0; 0 <= len ? _i < len : _i > len; i = 0 <= len ? ++_i : --_i) {
+    for (i = j = 0, ref = len; 0 <= ref ? j < ref : j > ref; i = 0 <= ref ? ++j : --j) {
       if (subString === string.slice(i, sublen)) {
         c++;
         i += sublen - 1;
@@ -1670,7 +1670,7 @@ Utils = (function() {
   };
 
   Utils.getStringFromFile = function(path, callback) {
-    var data, fs, name, req, xhr, _i, _len, _ref;
+    var data, fs, j, len1, name, ref, req, xhr;
     if (callback == null) {
       callback = null;
     }
@@ -1679,9 +1679,9 @@ Utils = (function() {
       if (window.XMLHttpRequest) {
         xhr = new XMLHttpRequest();
       } else if (window.ActiveXObject) {
-        _ref = ["Msxml2.XMLHTTP.6.0", "Msxml2.XMLHTTP.3.0", "Msxml2.XMLHTTP", "Microsoft.XMLHTTP"];
-        for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-          name = _ref[_i];
+        ref = ["Msxml2.XMLHTTP.6.0", "Msxml2.XMLHTTP.3.0", "Msxml2.XMLHTTP", "Microsoft.XMLHTTP"];
+        for (j = 0, len1 = ref.length; j < len1; j++) {
+          name = ref[j];
           try {
             xhr = new ActiveXObject(name);
           } catch (_error) {}
