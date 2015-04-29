@@ -1291,8 +1291,6 @@ if not(url?) or url.indexOf('file://') is -1
 
             YAML.load examplePath, (result) ->
 
-                console.log result
-
                 expect(result).toEqual (
                     this: 'is'
                     a: ['YAML', 'example']

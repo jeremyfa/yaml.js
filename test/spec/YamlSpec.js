@@ -643,7 +643,6 @@ if (!(url != null) || url.indexOf('file://') === -1) {
     });
     return it('can be done asynchronously', function(done) {
       return YAML.load(examplePath, function(result) {
-        console.log(result);
         expect(result).toEqual({
           "this": 'is',
           a: ['YAML', 'example']
