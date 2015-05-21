@@ -999,6 +999,8 @@ Parser = (function() {
       }
       if (indent >= newIndent) {
         data.push(this.currentLine.slice(newIndent));
+      } else if (Utils.ltrim(this.currentLine).charAt(0) === '#') {
+
       } else if (0 === indent) {
         this.moveToPreviousLine();
         break;

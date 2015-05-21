@@ -151,7 +151,7 @@ class Parser
                             value = values.value
                         else
                             value = @getNextEmbedBlock()
-                        
+
                         c = @getRealCurrentLineNb() + 1
                         parser = new Parser c
                         parser.refs = @refs
@@ -179,7 +179,7 @@ class Parser
                                     for key, value of parsedItem
                                         unless data.hasOwnProperty(key)
                                             data[key] = value
-                            
+
                         else
                             # If the value associated with the key is a single mapping node, each of its key/value pairs is inserted into the
                             # current mapping, unless the key already exists in it.
@@ -190,7 +190,7 @@ class Parser
                 else if values.value? and matches = @PATTERN_ANCHOR_VALUE.exec values.value
                     isRef = matches.ref
                     values.value = matches.value
-                
+
 
                 if mergeNode
                     # Merge keys
@@ -213,7 +213,7 @@ class Parser
                         # But overwriting is allowed when a merge node is used in current block.
                         if allowOverwrite or data[key] is undefined
                             data[key] = val
-                    
+
                 else
                     val = @parseValue values.value, exceptionOnInvalidType, objectDecoder
 
@@ -277,14 +277,14 @@ class Parser
             return data
 
 
-    
+
     # Returns the current line number (takes the offset into account).
     #
     # @return [Integer]     The current line number
     #
     getRealCurrentLineNb: ->
         return @currentLineNb + @offset
-    
+
 
     # Returns the current line indentation.
     #
@@ -312,7 +312,7 @@ class Parser
 
             if not(@isCurrentLineEmpty()) and 0 is newIndent and not(unindentedEmbedBlock)
                 throw new ParseException 'Indentation problem.', @getRealCurrentLineNb() + 1, @currentLine
-            
+
         else
             newIndent = indentation
 
@@ -347,15 +347,17 @@ class Parser
 
             if indent >= newIndent
                 data.push @currentLine[newIndent..]
+            else if Utils.ltrim(@currentLine).charAt(0) is '#'
+                # Don't add line with comments
             else if 0 is indent
                 @moveToPreviousLine()
                 break
             else
                 throw new ParseException 'Indentation problem.', @getRealCurrentLineNb() + 1, @currentLine
-        
+
 
         return data.join "\n"
-    
+
 
     # Moves the parser to the next line.
     #
@@ -601,7 +603,7 @@ class Parser
 
             # Remove end of the document marker (...)
             value = @PATTERN_DOCUMENT_MARKER_END.replace value, ''
-        
+
         return value
 
 

@@ -544,6 +544,35 @@ describe 'Parsed YAML Comments', ->
         )
 
 
+    it 'can be less indented in mapping', ->
+
+        expect YAML.parse """
+        parts:
+            a: 'b'
+            # normally indented comment
+            c: 'd'
+        # less indented comment
+            e: 'f'
+        """
+        .toEqual (
+            parts: {a: 'b', c: 'd', e: 'f'}
+        )
+
+
+    it 'can be less indented in sequence', ->
+
+        expect YAML.parse """
+        list-header:
+          - item1
+        #  - item2
+          - item3
+          # - item4
+        """
+        .toEqual (
+            'list-header': ['item1', 'item3']
+        )
+
+
     it 'can finish a line', ->
 
         expect YAML.parse """

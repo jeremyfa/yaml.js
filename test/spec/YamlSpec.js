@@ -274,6 +274,20 @@ describe('Parsed YAML Comments', function() {
       hello: 'world'
     });
   });
+  it('can be less indented in mapping', function() {
+    return expect(YAML.parse("parts:\n    a: 'b'\n    # normally indented comment\n    c: 'd'\n# less indented comment\n    e: 'f'")).toEqual({
+      parts: {
+        a: 'b',
+        c: 'd',
+        e: 'f'
+      }
+    });
+  });
+  it('can be less indented in sequence', function() {
+    return expect(YAML.parse("list-header:\n  - item1\n#  - item2\n  - item3\n  # - item4")).toEqual({
+      'list-header': ['item1', 'item3']
+    });
+  });
   it('can finish a line', function() {
     return expect(YAML.parse("hello: world # This is a comment")).toEqual({
       hello: 'world'
