@@ -604,6 +604,18 @@ class Parser
             # Remove end of the document marker (...)
             value = @PATTERN_DOCUMENT_MARKER_END.replace value, ''
 
+        # Ensure the block is not indented
+        lines = value.split("\n")
+        smallestIndent = -1
+        for line in lines
+            indent = line.length - Utils.ltrim(line).length
+            if smallestIndent is -1 or indent < smallestIndent
+                smallestIndent = indent
+        if smallestIndent > 0
+            for line, i in lines
+                lines[i] = line[smallestIndent..]
+            value = lines.join("\n")
+
         return value
 
 

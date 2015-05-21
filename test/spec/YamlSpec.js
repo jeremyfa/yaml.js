@@ -256,7 +256,7 @@ describe('Parsed YAML Blocks', function() {
       'source': 'espn'
     });
   });
-  return it('can be folded block handling trailing newlines in function of \'+\', \'-\' indicators', function() {
+  it('can be folded block handling trailing newlines in function of \'+\', \'-\' indicators', function() {
     return expect(YAML.parse("clipped: >\n    This has one newline.\n\n\n\nsame as \"clipped\" above: \"This has one newline.\\n\"\n\nstripped: >-\n    This has no newline.\n\n\n\nsame as \"stripped\" above: \"This has no newline.\"\n\nkept: >+\n    This has four newlines.\n\n\n\nsame as \"kept\" above: \"This has four newlines.\\n\\n\\n\\n\"")).toEqual({
       'clipped': "This has one newline.\n",
       'same as "clipped" above': "This has one newline.\n",
@@ -264,6 +264,13 @@ describe('Parsed YAML Blocks', function() {
       'same as "stripped" above': 'This has no newline.',
       'kept': "This has four newlines.\n\n\n\n",
       'same as "kept" above': "This has four newlines.\n\n\n\n"
+    });
+  });
+  return it('can be the whole document as intented block', function() {
+    return expect(YAML.parse("---\n  foo: \"bar\"\n  baz:\n    - \"qux\"\n    - \"quxx\"\n  corge: null")).toEqual({
+      'foo': "bar",
+      'baz': ['qux', 'quxx'],
+      'corge': null
     });
   });
 });

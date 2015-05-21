@@ -530,6 +530,24 @@ describe 'Parsed YAML Blocks', ->
         )
 
 
+    it 'can be the whole document as intented block', ->
+
+        expect YAML.parse """
+        ---
+          foo: "bar"
+          baz:
+            - "qux"
+            - "quxx"
+          corge: null
+        """
+        .toEqual (
+            'foo': "bar"
+            'baz': ['qux', 'quxx']
+            'corge': null
+        )
+
+
+
 
 describe 'Parsed YAML Comments', ->
 

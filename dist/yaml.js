@@ -1189,7 +1189,7 @@ Parser = (function() {
   };
 
   Parser.prototype.cleanup = function(value) {
-    var count, ref, ref1, ref2, trimmedValue;
+    var count, i, indent, j, l, len, len1, line, lines, ref, ref1, ref2, smallestIndent, trimmedValue;
     if (value.indexOf("\r") !== -1) {
       value = value.split("\r\n").join("\n").split("\r").join("\n");
     }
@@ -1206,6 +1206,22 @@ Parser = (function() {
       this.offset += Utils.subStrCount(value, "\n") - Utils.subStrCount(trimmedValue, "\n");
       value = trimmedValue;
       value = this.PATTERN_DOCUMENT_MARKER_END.replace(value, '');
+    }
+    lines = value.split("\n");
+    smallestIndent = -1;
+    for (j = 0, len = lines.length; j < len; j++) {
+      line = lines[j];
+      indent = line.length - Utils.ltrim(line).length;
+      if (smallestIndent === -1 || indent < smallestIndent) {
+        smallestIndent = indent;
+      }
+    }
+    if (smallestIndent > 0) {
+      for (i = l = 0, len1 = lines.length; l < len1; i = ++l) {
+        line = lines[i];
+        lines[i] = line.slice(smallestIndent);
+      }
+      value = lines.join("\n");
     }
     return value;
   };
