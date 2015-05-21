@@ -1839,6 +1839,10 @@ if (typeof window !== "undefined" && window !== null) {
   window.YAML = Yaml;
 }
 
+if (typeof window === "undefined" || window === null) {
+  this.YAML = Yaml;
+}
+
 module.exports = Yaml;
 
 

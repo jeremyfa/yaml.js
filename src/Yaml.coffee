@@ -111,5 +111,8 @@ class Yaml
 # Expose YAML namespace to browser
 window?.YAML = Yaml
 
-module.exports = Yaml
+# Not in the browser?
+unless window?
+    @YAML = Yaml
 
+module.exports = Yaml
