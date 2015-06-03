@@ -21,6 +21,7 @@
     "yaml2json": "./bin/yaml2json",
     "json2yaml": "./bin/json2yaml"
   },
+  "license": "MIT",
   "devDependencies": {},
   "repository": {
     "type": "git",
