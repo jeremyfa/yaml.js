@@ -1,14 +1,14 @@
 {
-  "name": "yamljs",
-  "version": "0.2.3",
-  "description": "Standalone JavaScript YAML 1.2 Parser & Encoder. Works under node.js and all major browsers. Also brings command line YAML/JSON conversion tools.",
+  "name": "ts-yamljs",
+  "version": "1.0.0",
+  "description": "Standalone JavaScript YAML 1.2 Parser & Encoder. Works under node.js and all major browsers. Also brings command line YAML/JSON conversion tools. Based on Jeremy Faivre's yamljs but with bugfixes",
   "keywords": [
     "yaml",
     "json",
     "yaml2json",
     "json2yaml"
   ],
-  "author": "Jeremy Faivre <contact@jeremyfa.com>",
+  "author": "Warrick Hill <warrick.hill@toolstation.com>",
   "main": "./lib/Yaml.js",
   "dependencies": {
     "argparse": "^0.1.15",
@@ -25,6 +25,6 @@
   "devDependencies": {},
   "repository": {
     "type": "git",
-    "url": "git://github.com/jeremyfa/yaml.js.git"
+    "url": "https://github.com/warrickhill/yaml.js"
   }
 }
