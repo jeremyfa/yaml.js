@@ -79,7 +79,7 @@ Then, two cli commands should become available: **yaml2json** and **json2yaml**.
 **yaml2json**
 
 ```
-usage: yaml2json [-h] [-v] [-p] [-i INDENTATION] [-s] [-r] [-w] input
+usage: yaml2json [-h] [-v] [-p] [-i INDENTATION] [-s] [-r] [-o OUTPUT] [-w] input
 
 Positional arguments:
   input                 YAML file or directory containing YAML files.
@@ -94,13 +94,15 @@ Optional arguments:
   -s, --save            Save output inside JSON file(s) with the same name.
   -r, --recursive       If the input is a directory, also find YAML files in 
                         sub-directories recursively.
+  -o OUTPUT, --output OUTPUT
+                        The output directory.
   -w, --watch           Watch for changes.
 ```
 
 **json2yaml**
 
 ```
-usage: json2yaml [-h] [-v] [-d DEPTH] [-i INDENTATION] [-s] [-r] [-w] input
+usage: json2yaml [-h] [-v] [-d DEPTH] [-i INDENTATION] [-s] [-r] [-o OUTPUT] [-w] input
 
 Positional arguments:
   input                 JSON file or directory containing JSON files.
@@ -117,6 +119,8 @@ Optional arguments:
   -s, --save            Save output inside YML file(s) with the same name.
   -r, --recursive       If the input is a directory, also find JSON files in 
                         sub-directories recursively.
+  -o OUTPUT, --output OUTPUT
+                        The output directory.
   -w, --watch           Watch for changes.
 ```
 
@@ -138,6 +142,10 @@ yaml2json myfile.yml --pretty --save
 # Watch a full directory and convert any YAML file into its JSON equivalent
 yaml2json mydirectory --pretty --save --recursive
 
+# Watch a full directory `mydirectory` and convert any YAML file into its
+# JSON equivalent and place the generated JSON files in `otherdirectory`
+yaml2json mydirectory --pretty --save --recursive --output otherdirectory
+
 # Convert JSON to YAML and store output inside a JSON file
 json2yaml myfile.json > ouput.yml
 
@@ -150,3 +158,6 @@ json2yaml myfile.json --indentation 4
 # Watch a full directory and convert any JSON file into its YAML equivalent
 json2yaml mydirectory --pretty --save --recursive
 
+# Watch a full directory `mydirectory` and convert any JSON file into its
+# YAML equivalent and place the generated YAML files in `otherdirectory`
+json2yaml mydirectory --pretty --save --recursive --output otherdirectory

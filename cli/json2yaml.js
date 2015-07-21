@@ -4,6 +4,7 @@
  */
  
 var YAML = require('../lib/Yaml.js');
+var mkdirp = require('mkdirp');
 
 var ArgumentParser = require('argparse').ArgumentParser;
 var cli = new ArgumentParser({
@@ -43,6 +44,15 @@ cli.addArgument(
     {
         help:   'If the input is a directory, also find JSON files in sub-directories recursively.',
         action: 'storeTrue'
+    }
+);
+
+cli.addArgument(
+    ['-o', '--output'],
+    {
+        help:   'The output directory.',
+        type:   'string',
+        action: 'store'
     }
 );
 
@@ -108,7 +118,7 @@ try {
     };
 
     // Convert to JSON
-    var convertToYAML = function(input, inline, save, spaces, str) {
+    var convertToYAML = function(input, inline, save, spaces, str, directory) {
         var yaml;
         if (inline == null) inline = 2;
         if (spaces == null) spaces = 2;
@@ -130,12 +140,15 @@ try {
             else {
                 output = input + '.yaml';
             }
-        
+			
+            var outputPath = path.join(directory, path.relative(process.cwd(), output));
+            mkdirp.sync(path.dirname(outputPath));
+			
             // Write file
-            var file = fs.openSync(output, 'w+');
+            var file = fs.openSync(outputPath, 'w+');
             fs.writeSync(file, yaml);
             fs.closeSync(file);
-            process.stdout.write("saved "+output+"\n");
+            process.stdout.write("saved "+outputPath+"\n");
         }
     };
 
@@ -154,7 +167,7 @@ try {
                     if (!stat.isDirectory()) {
                         if (!mtimes[file] || mtimes[file] < time) {
                             mtimes[file] = time;
-                            convertToYAML(file, options.depth, options.save, options.indentation);
+                            convertToYAML(file, options.depth, options.save, options.indentation, null, options.output);
                         }
                     }
                 }
@@ -166,7 +179,7 @@ try {
                     data += chunk;
                 });
                 stdin.on('end', function() {
-                    convertToYAML(null, options.depth, options.save, options.indentation, data);
+                    convertToYAML(null, options.depth, options.save, options.indentation, data, options.output);
                 });
             }
         } catch (e) {
