@@ -18,7 +18,7 @@ class Unescaper
     # @return [String]      The unescaped string.
     #
     @unescapeSingleQuotedString: (value) ->
-        return value.replace('\'\'', '\'')
+        return value.replace(/\'\'/g, '\'')
 
 
     # Unescapes a double quoted string.

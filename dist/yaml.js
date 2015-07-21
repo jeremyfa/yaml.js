@@ -53,7 +53,6 @@ Dumper = (function() {
 module.exports = Dumper;
 
 
-
 },{"./Inline":5,"./Utils":9}],2:[function(require,module,exports){
 var Escaper, Pattern;
 
@@ -112,7 +111,6 @@ Escaper = (function() {
 module.exports = Escaper;
 
 
-
 },{"./Pattern":7}],3:[function(require,module,exports){
 var DumpException,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
@@ -142,7 +140,6 @@ DumpException = (function(superClass) {
 module.exports = DumpException;
 
 
-
 },{}],4:[function(require,module,exports){
 var ParseException,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
@@ -170,7 +167,6 @@ ParseException = (function(superClass) {
 })(Error);
 
 module.exports = ParseException;
-
 
 
 },{}],5:[function(require,module,exports){
@@ -656,7 +652,6 @@ Inline = (function() {
 })();
 
 module.exports = Inline;
-
 
 
 },{"./Escaper":2,"./Exception/DumpException":3,"./Exception/ParseException":4,"./Pattern":7,"./Unescaper":8,"./Utils":9}],6:[function(require,module,exports){
@@ -1260,7 +1255,6 @@ Parser = (function() {
 module.exports = Parser;
 
 
-
 },{"./Exception/ParseException":4,"./Inline":5,"./Pattern":7,"./Utils":9}],7:[function(require,module,exports){
 var Pattern;
 
@@ -1382,7 +1376,6 @@ Pattern = (function() {
 module.exports = Pattern;
 
 
-
 },{}],8:[function(require,module,exports){
 var Pattern, Unescaper, Utils;
 
@@ -1396,7 +1389,7 @@ Unescaper = (function() {
   Unescaper.PATTERN_ESCAPED_CHARACTER = new Pattern('\\\\([0abt\tnvfre "\\/\\\\N_LP]|x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|U[0-9a-fA-F]{8})');
 
   Unescaper.unescapeSingleQuotedString = function(value) {
-    return value.replace('\'\'', '\'');
+    return value.replace(/\'\'/g, '\'');
   };
 
   Unescaper.unescapeDoubleQuotedString = function(value) {
@@ -1466,7 +1459,6 @@ Unescaper = (function() {
 })();
 
 module.exports = Unescaper;
-
 
 
 },{"./Pattern":7,"./Utils":9}],9:[function(require,module,exports){
@@ -1755,7 +1747,6 @@ Utils = (function() {
 module.exports = Utils;
 
 
-
 },{"./Pattern":7}],10:[function(require,module,exports){
 var Dumper, Parser, Utils, Yaml;
 
@@ -1860,7 +1851,6 @@ if (typeof window === "undefined" || window === null) {
 }
 
 module.exports = Yaml;
-
 
 
 },{"./Dumper":1,"./Parser":6,"./Utils":9}]},{},[10]);
