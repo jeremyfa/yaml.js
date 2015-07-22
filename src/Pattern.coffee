@@ -29,12 +29,12 @@ class Pattern
         capturingBracketNumber = 0
         i = 0
         while i < len
-            char = rawRegex.charAt(i)
-            if char is '\\'
+            _char = rawRegex.charAt(i)
+            if _char is '\\'
                 # Ignore next character
                 cleanedRegex += rawRegex[i..i+1]
                 i++
-            else if char is '('
+            else if _char is '('
                 # Increase bracket number, only if it is capturing
                 if i < len - 2
                     part = rawRegex[i..i+2]
@@ -62,12 +62,12 @@ class Pattern
 
                             i++
                     else
-                        cleanedRegex += char
+                        cleanedRegex += _char
                         capturingBracketNumber++
                 else
-                    cleanedRegex += char
+                    cleanedRegex += _char
             else
-                cleanedRegex += char
+                cleanedRegex += _char
 
             i++
 
