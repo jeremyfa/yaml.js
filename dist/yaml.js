@@ -1268,7 +1268,7 @@ Pattern = (function() {
   Pattern.prototype.mapping = null;
 
   function Pattern(rawRegex, modifiers) {
-    var capturingBracketNumber, char, cleanedRegex, i, len, mapping, name, part, subChar;
+    var _char, capturingBracketNumber, cleanedRegex, i, len, mapping, name, part, subChar;
     if (modifiers == null) {
       modifiers = '';
     }
@@ -1278,11 +1278,11 @@ Pattern = (function() {
     capturingBracketNumber = 0;
     i = 0;
     while (i < len) {
-      char = rawRegex.charAt(i);
-      if (char === '\\') {
+      _char = rawRegex.charAt(i);
+      if (_char === '\\') {
         cleanedRegex += rawRegex.slice(i, +(i + 1) + 1 || 9e9);
         i++;
-      } else if (char === '(') {
+      } else if (_char === '(') {
         if (i < len - 2) {
           part = rawRegex.slice(i, +(i + 2) + 1 || 9e9);
           if (part === '(?:') {
@@ -1310,14 +1310,14 @@ Pattern = (function() {
               i++;
             }
           } else {
-            cleanedRegex += char;
+            cleanedRegex += _char;
             capturingBracketNumber++;
           }
         } else {
-          cleanedRegex += char;
+          cleanedRegex += _char;
         }
       } else {
-        cleanedRegex += char;
+        cleanedRegex += _char;
       }
       i++;
     }
@@ -1485,46 +1485,46 @@ Utils = (function() {
 
   Utils.LOCAL_TIMEZONE_OFFSET = new Date().getTimezoneOffset() * 60 * 1000;
 
-  Utils.trim = function(str, char) {
+  Utils.trim = function(str, _char) {
     var regexLeft, regexRight;
-    if (char == null) {
-      char = '\\s';
+    if (_char == null) {
+      _char = '\\s';
     }
     return str.trim();
-    regexLeft = this.REGEX_LEFT_TRIM_BY_CHAR[char];
+    regexLeft = this.REGEX_LEFT_TRIM_BY_CHAR[_char];
     if (regexLeft == null) {
-      this.REGEX_LEFT_TRIM_BY_CHAR[char] = regexLeft = new RegExp('^' + char + '' + char + '*');
+      this.REGEX_LEFT_TRIM_BY_CHAR[_char] = regexLeft = new RegExp('^' + _char + '' + _char + '*');
     }
     regexLeft.lastIndex = 0;
-    regexRight = this.REGEX_RIGHT_TRIM_BY_CHAR[char];
+    regexRight = this.REGEX_RIGHT_TRIM_BY_CHAR[_char];
     if (regexRight == null) {
-      this.REGEX_RIGHT_TRIM_BY_CHAR[char] = regexRight = new RegExp(char + '' + char + '*$');
+      this.REGEX_RIGHT_TRIM_BY_CHAR[_char] = regexRight = new RegExp(_char + '' + _char + '*$');
     }
     regexRight.lastIndex = 0;
     return str.replace(regexLeft, '').replace(regexRight, '');
   };
 
-  Utils.ltrim = function(str, char) {
+  Utils.ltrim = function(str, _char) {
     var regexLeft;
-    if (char == null) {
-      char = '\\s';
+    if (_char == null) {
+      _char = '\\s';
     }
-    regexLeft = this.REGEX_LEFT_TRIM_BY_CHAR[char];
+    regexLeft = this.REGEX_LEFT_TRIM_BY_CHAR[_char];
     if (regexLeft == null) {
-      this.REGEX_LEFT_TRIM_BY_CHAR[char] = regexLeft = new RegExp('^' + char + '' + char + '*');
+      this.REGEX_LEFT_TRIM_BY_CHAR[_char] = regexLeft = new RegExp('^' + _char + '' + _char + '*');
     }
     regexLeft.lastIndex = 0;
     return str.replace(regexLeft, '');
   };
 
-  Utils.rtrim = function(str, char) {
+  Utils.rtrim = function(str, _char) {
     var regexRight;
-    if (char == null) {
-      char = '\\s';
+    if (_char == null) {
+      _char = '\\s';
     }
-    regexRight = this.REGEX_RIGHT_TRIM_BY_CHAR[char];
+    regexRight = this.REGEX_RIGHT_TRIM_BY_CHAR[_char];
     if (regexRight == null) {
-      this.REGEX_RIGHT_TRIM_BY_CHAR[char] = regexRight = new RegExp(char + '' + char + '*$');
+      this.REGEX_RIGHT_TRIM_BY_CHAR[_char] = regexRight = new RegExp(_char + '' + _char + '*$');
     }
     regexRight.lastIndex = 0;
     return str.replace(regexRight, '');
