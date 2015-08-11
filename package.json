@@ -13,10 +13,12 @@
   "dependencies": {
     "argparse": "^0.1.15",
     "glob": "^4.0.0",
+    "mkdirp": "^0.5.1"
+  },
+  "devDependencies": {
     "coffeeify": "^0.7.0",
     "benchmark": "^1.0.0",
-    "jasmine-node": "^1.14.5",
-    "mkdirp": "^0.5.1"
+    "jasmine-node": "^1.14.5"
   },
   "bin": {
     "yaml2json": "./bin/yaml2json",
