@@ -872,6 +872,11 @@ describe 'Dumped YAML Inline Collections', ->
                 Perl: 'use.perl.org'
         )
 
+    it 'can be dumped empty sequences in mappings', ->
+
+        expect YAML.parse(YAML.dump({key:[]}))
+        .toEqual({key:[]})
+
 
 
 describe 'Dumped YAML Basic Types', ->

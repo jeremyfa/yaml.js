@@ -1531,7 +1531,7 @@ Utils = (function() {
   };
 
   Utils.isEmpty = function(value) {
-    return !value || value === '' || value === '0';
+    return !value || value === '' || value === '0' || (value instanceof Array && value.length === 0);
   };
 
   Utils.subStrCount = function(string, subString, start, length) {

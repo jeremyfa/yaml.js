@@ -435,7 +435,7 @@ describe('Dumped YAML Inline Collections', function() {
       }
     })));
   });
-  return it('can be multi-line inline collections', function() {
+  it('can be multi-line inline collections', function() {
     return expect(YAML.parse("languages: [ Ruby,\n             Perl,\n             Python ]\nwebsites: { YAML: yaml.org,\n            Ruby: ruby-lang.org,\n            Python: python.org,\n            Perl: use.perl.org }")).toEqual(YAML.parse(YAML.dump({
       languages: ['Ruby', 'Perl', 'Python'],
       websites: {
@@ -445,6 +445,13 @@ describe('Dumped YAML Inline Collections', function() {
         Perl: 'use.perl.org'
       }
     })));
+  });
+  return it('can be dumped empty sequences in mappings', function() {
+    return expect(YAML.parse(YAML.dump({
+      key: []
+    }))).toEqual({
+      key: []
+    });
   });
 });
 

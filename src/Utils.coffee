@@ -86,7 +86,7 @@ class Utils
     # @return [Boolean] true if the value is empty
     #
     @isEmpty: (value) ->
-        return not(value) or value is '' or value is '0'
+        return not(value) or value is '' or value is '0' or (value instanceof Array and value.length is 0)
 
 
     # Counts the number of occurences of subString inside string
