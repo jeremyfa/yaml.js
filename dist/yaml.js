@@ -53,6 +53,7 @@ Dumper = (function() {
 module.exports = Dumper;
 
 
+
 },{"./Inline":5,"./Utils":9}],2:[function(require,module,exports){
 var Escaper, Pattern;
 
@@ -111,6 +112,7 @@ Escaper = (function() {
 module.exports = Escaper;
 
 
+
 },{"./Pattern":7}],3:[function(require,module,exports){
 var DumpException,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
@@ -140,6 +142,7 @@ DumpException = (function(superClass) {
 module.exports = DumpException;
 
 
+
 },{}],4:[function(require,module,exports){
 var ParseException,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
@@ -167,6 +170,7 @@ ParseException = (function(superClass) {
 })(Error);
 
 module.exports = ParseException;
+
 
 
 },{}],5:[function(require,module,exports){
@@ -652,6 +656,7 @@ Inline = (function() {
 })();
 
 module.exports = Inline;
+
 
 
 },{"./Escaper":2,"./Exception/DumpException":3,"./Exception/ParseException":4,"./Pattern":7,"./Unescaper":8,"./Utils":9}],6:[function(require,module,exports){
@@ -1255,6 +1260,7 @@ Parser = (function() {
 module.exports = Parser;
 
 
+
 },{"./Exception/ParseException":4,"./Inline":5,"./Pattern":7,"./Utils":9}],7:[function(require,module,exports){
 var Pattern;
 
@@ -1268,7 +1274,7 @@ Pattern = (function() {
   Pattern.prototype.mapping = null;
 
   function Pattern(rawRegex, modifiers) {
-    var capturingBracketNumber, char, cleanedRegex, i, len, mapping, name, part, subChar;
+    var _char, capturingBracketNumber, cleanedRegex, i, len, mapping, name, part, subChar;
     if (modifiers == null) {
       modifiers = '';
     }
@@ -1278,11 +1284,11 @@ Pattern = (function() {
     capturingBracketNumber = 0;
     i = 0;
     while (i < len) {
-      char = rawRegex.charAt(i);
-      if (char === '\\') {
+      _char = rawRegex.charAt(i);
+      if (_char === '\\') {
         cleanedRegex += rawRegex.slice(i, +(i + 1) + 1 || 9e9);
         i++;
-      } else if (char === '(') {
+      } else if (_char === '(') {
         if (i < len - 2) {
           part = rawRegex.slice(i, +(i + 2) + 1 || 9e9);
           if (part === '(?:') {
@@ -1310,14 +1316,14 @@ Pattern = (function() {
               i++;
             }
           } else {
-            cleanedRegex += char;
+            cleanedRegex += _char;
             capturingBracketNumber++;
           }
         } else {
-          cleanedRegex += char;
+          cleanedRegex += _char;
         }
       } else {
-        cleanedRegex += char;
+        cleanedRegex += _char;
       }
       i++;
     }
@@ -1374,6 +1380,7 @@ Pattern = (function() {
 })();
 
 module.exports = Pattern;
+
 
 
 },{}],8:[function(require,module,exports){
@@ -1461,6 +1468,7 @@ Unescaper = (function() {
 module.exports = Unescaper;
 
 
+
 },{"./Pattern":7,"./Utils":9}],9:[function(require,module,exports){
 var Pattern, Utils;
 
@@ -1485,46 +1493,46 @@ Utils = (function() {
 
   Utils.LOCAL_TIMEZONE_OFFSET = new Date().getTimezoneOffset() * 60 * 1000;
 
-  Utils.trim = function(str, char) {
+  Utils.trim = function(str, _char) {
     var regexLeft, regexRight;
-    if (char == null) {
-      char = '\\s';
+    if (_char == null) {
+      _char = '\\s';
     }
     return str.trim();
-    regexLeft = this.REGEX_LEFT_TRIM_BY_CHAR[char];
+    regexLeft = this.REGEX_LEFT_TRIM_BY_CHAR[_char];
     if (regexLeft == null) {
-      this.REGEX_LEFT_TRIM_BY_CHAR[char] = regexLeft = new RegExp('^' + char + '' + char + '*');
+      this.REGEX_LEFT_TRIM_BY_CHAR[_char] = regexLeft = new RegExp('^' + _char + '' + _char + '*');
     }
     regexLeft.lastIndex = 0;
-    regexRight = this.REGEX_RIGHT_TRIM_BY_CHAR[char];
+    regexRight = this.REGEX_RIGHT_TRIM_BY_CHAR[_char];
     if (regexRight == null) {
-      this.REGEX_RIGHT_TRIM_BY_CHAR[char] = regexRight = new RegExp(char + '' + char + '*$');
+      this.REGEX_RIGHT_TRIM_BY_CHAR[_char] = regexRight = new RegExp(_char + '' + _char + '*$');
     }
     regexRight.lastIndex = 0;
     return str.replace(regexLeft, '').replace(regexRight, '');
   };
 
-  Utils.ltrim = function(str, char) {
+  Utils.ltrim = function(str, _char) {
     var regexLeft;
-    if (char == null) {
-      char = '\\s';
+    if (_char == null) {
+      _char = '\\s';
     }
-    regexLeft = this.REGEX_LEFT_TRIM_BY_CHAR[char];
+    regexLeft = this.REGEX_LEFT_TRIM_BY_CHAR[_char];
     if (regexLeft == null) {
-      this.REGEX_LEFT_TRIM_BY_CHAR[char] = regexLeft = new RegExp('^' + char + '' + char + '*');
+      this.REGEX_LEFT_TRIM_BY_CHAR[_char] = regexLeft = new RegExp('^' + _char + '' + _char + '*');
     }
     regexLeft.lastIndex = 0;
     return str.replace(regexLeft, '');
   };
 
-  Utils.rtrim = function(str, char) {
+  Utils.rtrim = function(str, _char) {
     var regexRight;
-    if (char == null) {
-      char = '\\s';
+    if (_char == null) {
+      _char = '\\s';
     }
-    regexRight = this.REGEX_RIGHT_TRIM_BY_CHAR[char];
+    regexRight = this.REGEX_RIGHT_TRIM_BY_CHAR[_char];
     if (regexRight == null) {
-      this.REGEX_RIGHT_TRIM_BY_CHAR[char] = regexRight = new RegExp(char + '' + char + '*$');
+      this.REGEX_RIGHT_TRIM_BY_CHAR[_char] = regexRight = new RegExp(_char + '' + _char + '*$');
     }
     regexRight.lastIndex = 0;
     return str.replace(regexRight, '');
@@ -1747,6 +1755,7 @@ Utils = (function() {
 module.exports = Utils;
 
 
+
 },{"./Pattern":7}],10:[function(require,module,exports){
 var Dumper, Parser, Utils, Yaml;
 
@@ -1851,6 +1860,7 @@ if (typeof window === "undefined" || window === null) {
 }
 
 module.exports = Yaml;
+
 
 
 },{"./Dumper":1,"./Parser":6,"./Utils":9}]},{},[10]);
