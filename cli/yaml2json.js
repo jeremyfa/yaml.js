@@ -2,9 +2,8 @@
 /**
  * yaml2json cli program
  */
-
+ 
 var YAML = require('../lib/Yaml.js');
-var mkdirp = require('mkdirp');
 
 var ArgumentParser = require('argparse').ArgumentParser;
 var cli = new ArgumentParser({
@@ -43,15 +42,6 @@ cli.addArgument(
     {
         help:   'If the input is a directory, also find YAML files in sub-directories recursively.',
         action: 'storeTrue'
-    }
-);
-
-cli.addArgument(
-    ['-o', '--output'],
-    {
-        help:   'The output directory.',
-        type:   'string',
-        action: 'store'
     }
 );
 
@@ -119,7 +109,7 @@ try {
     };
 
     // Convert to JSON
-    var convertToJSON = function(input, pretty, save, spaces, str, directory) {
+    var convertToJSON = function(input, pretty, save, spaces, str) {
         var json;
         if (spaces == null) spaces = 2;
         if (str != null) {
@@ -153,15 +143,12 @@ try {
             else {
                 output = input + '.json';
             }
-
-            var outputPath = path.join(directory, path.relative(process.cwd(), output));
-            mkdirp.sync(path.dirname(outputPath));
-
+        
             // Write file
-            var file = fs.openSync(outputPath, 'w+');
+            var file = fs.openSync(output, 'w+');
             fs.writeSync(file, json);
             fs.closeSync(file);
-            process.stdout.write("saved "+outputPath+"\n");
+            process.stdout.write("saved "+output+"\n");
         }
     };
 
@@ -181,7 +168,7 @@ try {
                     if (!stat.isDirectory()) {
                         if (!mtimes[file] || mtimes[file] < time) {
                             mtimes[file] = time;
-                            convertToJSON(file, options.pretty, options.save, options.indentation, null, options.output);
+                            convertToJSON(file, options.pretty, options.save, options.indentation);
                         }
                     }
                 }
@@ -193,7 +180,7 @@ try {
                     data += chunk;
                 });
                 stdin.on('end', function() {
-                    convertToJSON(null, options.pretty, options.save, options.indentation, data, options.output);
+                    convertToJSON(null, options.pretty, options.save, options.indentation, data);
                 });
             }
         } catch (e) {
