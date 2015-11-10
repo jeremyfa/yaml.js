@@ -24,7 +24,6 @@
     "json2yaml": "./bin/json2yaml"
   },
   "license": "MIT",
-  "devDependencies": {},
   "repository": {
     "type": "git",
     "url": "git://github.com/jeremyfa/yaml.js.git"
