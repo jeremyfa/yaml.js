@@ -136,7 +136,7 @@ class Pattern
             @regex.lastIndex = 0
             str = str.replace @regex, ''
             count++
-        
+
         return [str, count]
 
 

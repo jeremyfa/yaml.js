@@ -14,8 +14,8 @@ class Parser
     PATTERN_FOLDED_SCALAR_END:              new Pattern '(?<separator>\\||>)(?<modifiers>\\+|\\-|\\d+|\\+\\d+|\\-\\d+|\\d+\\+|\\d+\\-)?(?<comments> +#.*)?$'
     PATTERN_SEQUENCE_ITEM:                  new Pattern '^\\-((?<leadspaces>\\s+)(?<value>.+?))?\\s*$'
     PATTERN_ANCHOR_VALUE:                   new Pattern '^&(?<ref>[^ ]+) *(?<value>.*)'
-    PATTERN_COMPACT_NOTATION:               new Pattern '^(?<key>'+Inline.REGEX_QUOTED_STRING+'|[^ \'"\\{\\[].*?) *\\:(\\s+(?<value>.+?))?\\s*$'
-    PATTERN_MAPPING_ITEM:                   new Pattern '^(?<key>'+Inline.REGEX_QUOTED_STRING+'|[^ \'"\\[\\{].*?) *\\:(\\s+(?<value>.+?))?\\s*$'
+    PATTERN_COMPACT_NOTATION:               new Pattern '^(?<key>'+Inline.REGEX_QUOTED_STRING+'|\\[?[^ \'"\\{\\[].*?) *\\:(\\s+(?<value>.+?))?\\s*$'
+    PATTERN_MAPPING_ITEM:                   new Pattern '^(?<key>'+Inline.REGEX_QUOTED_STRING+'|\\[?[^ \'"\\[\\{].*?) *\\:(\\s+(?<value>.+?))?\\s*$'
     PATTERN_DECIMAL:                        new Pattern '\\d+'
     PATTERN_INDENT_SPACES:                  new Pattern '^ +'
     PATTERN_TRAILING_LINES:                 new Pattern '(\n*)$'
@@ -258,7 +258,6 @@ class Parser
                         e.snippet = @currentLine
 
                         throw e
-
                 throw new ParseException 'Unable to parse.', @getRealCurrentLineNb() + 1, @currentLine
 
             if isRef
