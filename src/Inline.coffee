@@ -413,8 +413,10 @@ class Inline
 
                                 if ext is 'yaml' or ext is 'raml'
                                     content = Yaml.YAML.load filepath
-                                else
+                                else if ext is 'json'
                                     content = JSON.parse Utils.getStringFromFile filepath
+                                else
+                                    content = Utils.getStringFromFile filepath
                                 return content
                             when '!str'
                                 return Utils.ltrim scalar[4..]
