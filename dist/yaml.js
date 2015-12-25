@@ -53,7 +53,6 @@ Dumper = (function() {
 module.exports = Dumper;
 
 
-
 },{"./Inline":5,"./Utils":9}],2:[function(require,module,exports){
 var Escaper, Pattern;
 
@@ -112,7 +111,6 @@ Escaper = (function() {
 module.exports = Escaper;
 
 
-
 },{"./Pattern":7}],3:[function(require,module,exports){
 var DumpException,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
@@ -140,7 +138,6 @@ DumpException = (function(superClass) {
 })(Error);
 
 module.exports = DumpException;
-
 
 
 },{}],4:[function(require,module,exports){
@@ -172,10 +169,11 @@ ParseException = (function(superClass) {
 module.exports = ParseException;
 
 
-
 },{}],5:[function(require,module,exports){
-var DumpException, Escaper, Inline, ParseException, Pattern, Unescaper, Utils,
+var DumpException, Escaper, Inline, ParseException, Pattern, Unescaper, Utils, Yaml,
   indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
+
+Yaml = require('./Yaml');
 
 Pattern = require('./Pattern');
 
@@ -409,7 +407,7 @@ Inline = (function() {
   };
 
   Inline.parseSequence = function(sequence, context) {
-    var e, i, isQuoted, len, output, ref, value;
+    var e, error, i, isQuoted, len, output, ref, value;
     output = [];
     len = sequence.length;
     i = context.i;
@@ -438,8 +436,8 @@ Inline = (function() {
           if (!isQuoted && typeof value === 'string' && (value.indexOf(': ') !== -1 || value.indexOf(":\n") !== -1)) {
             try {
               value = this.parseMapping('{' + value + '}');
-            } catch (_error) {
-              e = _error;
+            } catch (error) {
+              e = error;
             }
           }
           output.push(value);
@@ -519,7 +517,7 @@ Inline = (function() {
   };
 
   Inline.evaluateScalar = function(scalar, context) {
-    var cast, date, exceptionOnInvalidType, firstChar, firstSpace, firstWord, objectDecoder, raw, scalarLower, subValue, trimmedScalar;
+    var cast, content, date, exceptionOnInvalidType, ext, filepath, firstChar, firstSpace, firstWord, objectDecoder, raw, scalarLower, subValue, trimmedScalar;
     scalar = Utils.trim(scalar);
     scalarLower = scalar.toLowerCase();
     switch (scalarLower) {
@@ -552,7 +550,22 @@ Inline = (function() {
                 if (firstSpace !== -1) {
                   return parseInt(this.parseScalar(scalar.slice(2)));
                 }
-                return null;
+                return nullq;
+              case '!include':
+                filepath = Utils.ltrim(scalar.slice(8));
+                ext = (function(filepath) {
+                  var chunks;
+                  chunks = filepath.split('.');
+                  return chunks[chunks.length - 1];
+                })(filepath);
+                if (ext === 'yaml' || ext === 'raml') {
+                  content = Yaml.YAML.load(filepath);
+                } else if (ext === 'json') {
+                  content = JSON.parse(Utils.getStringFromFile(filepath));
+                } else {
+                  content = Utils.getStringFromFile(filepath);
+                }
+                return content;
               case '!str':
                 return Utils.ltrim(scalar.slice(4));
               case '!!str':
@@ -658,8 +671,7 @@ Inline = (function() {
 module.exports = Inline;
 
 
-
-},{"./Escaper":2,"./Exception/DumpException":3,"./Exception/ParseException":4,"./Pattern":7,"./Unescaper":8,"./Utils":9}],6:[function(require,module,exports){
+},{"./Escaper":2,"./Exception/DumpException":3,"./Exception/ParseException":4,"./Pattern":7,"./Unescaper":8,"./Utils":9,"./Yaml":10}],6:[function(require,module,exports){
 var Inline, ParseException, Parser, Pattern, Utils;
 
 Inline = require('./Inline');
@@ -679,9 +691,9 @@ Parser = (function() {
 
   Parser.prototype.PATTERN_ANCHOR_VALUE = new Pattern('^&(?<ref>[^ ]+) *(?<value>.*)');
 
-  Parser.prototype.PATTERN_COMPACT_NOTATION = new Pattern('^(?<key>' + Inline.REGEX_QUOTED_STRING + '|[^ \'"\\{\\[].*?) *\\:(\\s+(?<value>.+?))?\\s*$');
+  Parser.prototype.PATTERN_COMPACT_NOTATION = new Pattern('^(?<key>' + Inline.REGEX_QUOTED_STRING + '|\\[?[^ \'"\\{\\[].*?) *\\:(\\s+(?<value>.+?))?\\s*$');
 
-  Parser.prototype.PATTERN_MAPPING_ITEM = new Pattern('^(?<key>' + Inline.REGEX_QUOTED_STRING + '|[^ \'"\\[\\{].*?) *\\:(\\s+(?<value>.+?))?\\s*$');
+  Parser.prototype.PATTERN_MAPPING_ITEM = new Pattern('^(?<key>' + Inline.REGEX_QUOTED_STRING + '|\\[?[^ \'"\\[\\{].*?) *\\:(\\s+(?<value>.+?))?\\s*$');
 
   Parser.prototype.PATTERN_DECIMAL = new Pattern('\\d+');
 
@@ -714,7 +726,7 @@ Parser = (function() {
   }
 
   Parser.prototype.parse = function(value, exceptionOnInvalidType, objectDecoder) {
-    var alias, allowOverwrite, block, c, context, data, e, first, i, indent, isRef, j, k, key, l, lastKey, len, len1, len2, len3, lineCount, m, matches, mergeNode, n, name, parsed, parsedItem, parser, ref, ref1, ref2, refName, refValue, val, values;
+    var alias, allowOverwrite, block, c, context, data, e, error, error1, error2, first, i, indent, isRef, j, k, key, l, lastKey, len, len1, len2, len3, lineCount, m, matches, mergeNode, n, name, parsed, parsedItem, parser, ref, ref1, ref2, refName, refValue, val, values;
     if (exceptionOnInvalidType == null) {
       exceptionOnInvalidType = false;
     }
@@ -782,8 +794,8 @@ Parser = (function() {
         Inline.configure(exceptionOnInvalidType, objectDecoder);
         try {
           key = Inline.parseScalar(values.key);
-        } catch (_error) {
-          e = _error;
+        } catch (error) {
+          e = error;
           e.parsedLine = this.getRealCurrentLineNb() + 1;
           e.snippet = this.currentLine;
           throw e;
@@ -891,8 +903,8 @@ Parser = (function() {
         if (1 === lineCount || (2 === lineCount && Utils.isEmpty(this.lines[1]))) {
           try {
             value = Inline.parse(this.lines[0], exceptionOnInvalidType, objectDecoder);
-          } catch (_error) {
-            e = _error;
+          } catch (error1) {
+            e = error1;
             e.parsedLine = this.getRealCurrentLineNb() + 1;
             e.snippet = this.currentLine;
             throw e;
@@ -919,8 +931,8 @@ Parser = (function() {
         } else if ((ref2 = Utils.ltrim(value).charAt(0)) === '[' || ref2 === '{') {
           try {
             return Inline.parse(value, exceptionOnInvalidType, objectDecoder);
-          } catch (_error) {
-            e = _error;
+          } catch (error2) {
+            e = error2;
             e.parsedLine = this.getRealCurrentLineNb() + 1;
             e.snippet = this.currentLine;
             throw e;
@@ -1024,7 +1036,7 @@ Parser = (function() {
   };
 
   Parser.prototype.parseValue = function(value, exceptionOnInvalidType, objectDecoder) {
-    var e, foldedIndent, matches, modifiers, pos, ref, ref1, val;
+    var e, error, error1, foldedIndent, matches, modifiers, pos, ref, ref1, val;
     if (0 === value.indexOf('*')) {
       pos = value.indexOf('#');
       if (pos !== -1) {
@@ -1053,14 +1065,14 @@ Parser = (function() {
     }
     try {
       return Inline.parse(value, exceptionOnInvalidType, objectDecoder);
-    } catch (_error) {
-      e = _error;
+    } catch (error) {
+      e = error;
       if (((ref1 = value.charAt(0)) === '[' || ref1 === '{') && e instanceof ParseException && this.isNextLineIndented()) {
         value += "\n" + this.getNextEmbedBlock();
         try {
           return Inline.parse(value, exceptionOnInvalidType, objectDecoder);
-        } catch (_error) {
-          e = _error;
+        } catch (error1) {
+          e = error1;
           e.parsedLine = this.getRealCurrentLineNb() + 1;
           e.snippet = this.currentLine;
           throw e;
@@ -1260,7 +1272,6 @@ Parser = (function() {
 module.exports = Parser;
 
 
-
 },{"./Exception/ParseException":4,"./Inline":5,"./Pattern":7,"./Utils":9}],7:[function(require,module,exports){
 var Pattern;
 
@@ -1382,7 +1393,6 @@ Pattern = (function() {
 module.exports = Pattern;
 
 
-
 },{}],8:[function(require,module,exports){
 var Pattern, Unescaper, Utils;
 
@@ -1466,7 +1476,6 @@ Unescaper = (function() {
 })();
 
 module.exports = Unescaper;
-
 
 
 },{"./Pattern":7,"./Utils":9}],9:[function(require,module,exports){
@@ -1702,7 +1711,7 @@ Utils = (function() {
           name = ref[j];
           try {
             xhr = new ActiveXObject(name);
-          } catch (_error) {}
+          } catch (undefined) {}
         }
       }
     }
@@ -1753,7 +1762,6 @@ Utils = (function() {
 })();
 
 module.exports = Utils;
-
 
 
 },{"./Pattern":7}],10:[function(require,module,exports){
@@ -1860,7 +1868,6 @@ if (typeof window === "undefined" || window === null) {
 }
 
 module.exports = Yaml;
-
 
 
 },{"./Dumper":1,"./Parser":6,"./Utils":9}]},{},[10]);
