@@ -404,10 +404,17 @@ class Inline
                             when '!'
                                 if firstSpace isnt -1
                                     return parseInt @parseScalar(scalar[2..])
-                                return null
+                                return nullq
                             when '!include'
                                 filepath = Utils.ltrim scalar[8..]
-                                content = Yaml.YAML.load filepath
+                                ext = do (filepath) ->
+                                  chunks = filepath.split('.')
+                                  chunks[chunks.length - 1]
+
+                                if ext is 'yaml' or ext is 'raml'
+                                    content = Yaml.YAML.load filepath
+                                else
+                                    content = JSON.parse Utils.getStringFromFile filepath
                                 return content
                             when '!str'
                                 return Utils.ltrim scalar[4..]

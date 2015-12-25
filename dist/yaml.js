@@ -517,7 +517,7 @@ Inline = (function() {
   };
 
   Inline.evaluateScalar = function(scalar, context) {
-    var cast, content, date, exceptionOnInvalidType, filepath, firstChar, firstSpace, firstWord, objectDecoder, raw, scalarLower, subValue, trimmedScalar;
+    var cast, content, date, exceptionOnInvalidType, ext, filepath, firstChar, firstSpace, firstWord, objectDecoder, raw, scalarLower, subValue, trimmedScalar;
     scalar = Utils.trim(scalar);
     scalarLower = scalar.toLowerCase();
     switch (scalarLower) {
@@ -550,10 +550,19 @@ Inline = (function() {
                 if (firstSpace !== -1) {
                   return parseInt(this.parseScalar(scalar.slice(2)));
                 }
-                return null;
+                return nullq;
               case '!include':
                 filepath = Utils.ltrim(scalar.slice(8));
-                content = Yaml.YAML.load(filepath);
+                ext = (function(filepath) {
+                  var chunks;
+                  chunks = filepath.split('.');
+                  return chunks[chunks.length - 1];
+                })(filepath);
+                if (ext === 'yaml' || ext === 'raml') {
+                  content = Yaml.YAML.load(filepath);
+                } else {
+                  content = JSON.parse(Utils.getStringFromFile(filepath));
+                }
                 return content;
               case '!str':
                 return Utils.ltrim(scalar.slice(4));
