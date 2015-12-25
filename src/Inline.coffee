@@ -1,4 +1,5 @@
 
+Yaml            = require './Yaml'
 Pattern         = require './Pattern'
 Unescaper       = require './Unescaper'
 Escaper         = require './Escaper'
@@ -404,6 +405,10 @@ class Inline
                                 if firstSpace isnt -1
                                     return parseInt @parseScalar(scalar[2..])
                                 return null
+                            when '!include'
+                                filepath = Utils.ltrim scalar[8..]
+                                content = Yaml.YAML.load filepath
+                                return content
                             when '!str'
                                 return Utils.ltrim scalar[4..]
                             when '!!str'

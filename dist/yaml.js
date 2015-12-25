@@ -170,8 +170,10 @@ module.exports = ParseException;
 
 
 },{}],5:[function(require,module,exports){
-var DumpException, Escaper, Inline, ParseException, Pattern, Unescaper, Utils,
+var DumpException, Escaper, Inline, ParseException, Pattern, Unescaper, Utils, Yaml,
   indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
+
+Yaml = require('./Yaml');
 
 Pattern = require('./Pattern');
 
@@ -515,7 +517,7 @@ Inline = (function() {
   };
 
   Inline.evaluateScalar = function(scalar, context) {
-    var cast, date, exceptionOnInvalidType, firstChar, firstSpace, firstWord, objectDecoder, raw, scalarLower, subValue, trimmedScalar;
+    var cast, content, date, exceptionOnInvalidType, filepath, firstChar, firstSpace, firstWord, objectDecoder, raw, scalarLower, subValue, trimmedScalar;
     scalar = Utils.trim(scalar);
     scalarLower = scalar.toLowerCase();
     switch (scalarLower) {
@@ -549,6 +551,10 @@ Inline = (function() {
                   return parseInt(this.parseScalar(scalar.slice(2)));
                 }
                 return null;
+              case '!include':
+                filepath = Utils.ltrim(scalar.slice(8));
+                content = Yaml.YAML.load(filepath);
+                return content;
               case '!str':
                 return Utils.ltrim(scalar.slice(4));
               case '!!str':
@@ -654,7 +660,7 @@ Inline = (function() {
 module.exports = Inline;
 
 
-},{"./Escaper":2,"./Exception/DumpException":3,"./Exception/ParseException":4,"./Pattern":7,"./Unescaper":8,"./Utils":9}],6:[function(require,module,exports){
+},{"./Escaper":2,"./Exception/DumpException":3,"./Exception/ParseException":4,"./Pattern":7,"./Unescaper":8,"./Utils":9,"./Yaml":10}],6:[function(require,module,exports){
 var Inline, ParseException, Parser, Pattern, Utils;
 
 Inline = require('./Inline');
@@ -674,7 +680,7 @@ Parser = (function() {
 
   Parser.prototype.PATTERN_ANCHOR_VALUE = new Pattern('^&(?<ref>[^ ]+) *(?<value>.*)');
 
-  Parser.prototype.PATTERN_COMPACT_NOTATION = new Pattern('^(?<key>' + Inline.REGEX_QUOTED_STRING + '|[^ \'"\\{\\[].*?) *\\:(\\s+(?<value>.+?))?\\s*$');
+  Parser.prototype.PATTERN_COMPACT_NOTATION = new Pattern('^(?<key>' + Inline.REGEX_QUOTED_STRING + '|\\[?[^ \'"\\{\\[].*?) *\\:(\\s+(?<value>.+?))?\\s*$');
 
   Parser.prototype.PATTERN_MAPPING_ITEM = new Pattern('^(?<key>' + Inline.REGEX_QUOTED_STRING + '|\\[?[^ \'"\\[\\{].*?) *\\:(\\s+(?<value>.+?))?\\s*$');
 
@@ -921,7 +927,6 @@ Parser = (function() {
             throw e;
           }
         }
-        console.log(this.lines);
         throw new ParseException('Unable to parse.', this.getRealCurrentLineNb() + 1, this.currentLine);
       }
       if (isRef) {
@@ -1332,7 +1337,6 @@ Pattern = (function() {
     var index, matches, name, ref;
     this.regex.lastIndex = 0;
     matches = this.regex.exec(str);
-    console.log('exec', str, this);
     if (matches == null) {
       return null;
     }
@@ -1348,13 +1352,11 @@ Pattern = (function() {
 
   Pattern.prototype.test = function(str) {
     this.regex.lastIndex = 0;
-    console.log('test', str, this);
     return this.regex.test(str);
   };
 
   Pattern.prototype.replace = function(str, replacement) {
     this.regex.lastIndex = 0;
-    console.log('replace', str, replacement, this);
     return str.replace(this.regex, replacement);
   };
 

@@ -65,6 +65,7 @@ class Parser
             if @isCurrentLineEmpty()
                 continue
 
+
             # Tab?
             if "\t" is @currentLine[0]
                 throw new ParseException 'A YAML file cannot contain tabs as indentation.', @getRealCurrentLineNb() + 1, @currentLine
@@ -269,12 +270,10 @@ class Parser
                         lastKey = key
                     @refs[isRef] = data[lastKey]
 
-
         if Utils.isEmpty(data)
             return null
         else
             return data
-
 
 
     # Returns the current line number (takes the offset into account).
