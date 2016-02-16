@@ -206,6 +206,60 @@ describe 'Parsed YAML Basic Types', ->
         .toEqual 'String'
 
 
+    it 'can be double-quoted strings with backslashes', ->
+
+        expect YAML.parse """
+        str:
+            "string with \\\\ inside"
+        """
+        .toEqual str: 'string with \\ inside'
+
+
+    it 'can be single-quoted strings with backslashes', ->
+
+        expect YAML.parse """
+        str:
+            'string with \\\\ inside'
+        """
+        .toEqual str: 'string with \\\\ inside'
+
+
+    it 'can be double-quoted strings with line breaks', ->
+
+        expect YAML.parse """
+        str:
+            "string with \\n inside"
+        """
+        .toEqual str: 'string with \n inside'
+
+
+    it 'can be single-quoted strings with escaped line breaks', ->
+
+        expect YAML.parse """
+        str:
+            'string with \\n inside'
+        """
+        .toEqual str: 'string with \\n inside'
+
+
+    it 'can be double-quoted strings with line breaks and backslashes', ->
+
+        expect YAML.parse """
+        str:
+            "string with \\n inside and \\\\ also"
+        """
+        .toEqual str: 'string with \n inside and \\ also'
+
+
+    it 'can be single-quoted strings with line breaks and backslashes', ->
+
+        expect YAML.parse """
+        str:
+            'string with \\n inside and \\\\ also'
+        """
+        .toEqual str: 'string with \\n inside and \\\\ also'
+
+
     it 'can have string characters in sequences', ->
 
         expect YAML.parse """
@@ -888,6 +942,60 @@ describe 'Dumped YAML Basic Types', ->
         String
         """
         .toEqual YAML.parse YAML.dump 'String'
+
+
+    it 'can be double-quoted strings with backslashes', ->
+
+        expect YAML.parse """
+        str:
+            "string with \\\\ inside"
+        """
+        .toEqual YAML.parse YAML.dump str: 'string with \\ inside'
+
+
+    it 'can be single-quoted strings with backslashes', ->
+
+        expect YAML.parse """
+        str:
+            'string with \\\\ inside'
+        """
+        .toEqual YAML.parse YAML.dump str: 'string with \\\\ inside'
+
+
+    it 'can be double-quoted strings with line breaks', ->
+
+        expect YAML.parse """
+        str:
+            "string with \\n inside"
+        """
+        .toEqual YAML.parse YAML.dump str: 'string with \n inside'
+
+
+    it 'can be double-quoted strings with line breaks and backslashes', ->
+
+        expect YAML.parse """
+        str:
+            "string with \\n inside and \\\\ also"
+        """
+        .toEqual YAML.parse YAML.dump str: 'string with \n inside and \\ also'
+
+
+    it 'can be single-quoted strings with line breaks and backslashes', ->
+
+        expect YAML.parse """
+        str:
+            'string with \\n inside and \\\\ also'
+        """
+        .toEqual YAML.parse YAML.dump str: 'string with \\n inside and \\\\ also'
+
+
+    it 'can be single-quoted strings with escaped line breaks', ->
+
+        expect YAML.parse """
+        str:
+            'string with \\n inside'
+        """
+        .toEqual YAML.parse YAML.dump str: 'string with \\n inside'
 
 
     it 'can have string characters in sequences', ->
