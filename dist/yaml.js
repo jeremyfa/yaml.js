@@ -53,7 +53,6 @@ Dumper = (function() {
 module.exports = Dumper;
 
 
-
 },{"./Inline":5,"./Utils":9}],2:[function(require,module,exports){
 var Escaper, Pattern;
 
@@ -64,9 +63,9 @@ Escaper = (function() {
 
   function Escaper() {}
 
-  Escaper.LIST_ESCAPEES = ['\\\\', '\\"', '"', "\x00", "\x01", "\x02", "\x03", "\x04", "\x05", "\x06", "\x07", "\x08", "\x09", "\x0a", "\x0b", "\x0c", "\x0d", "\x0e", "\x0f", "\x10", "\x11", "\x12", "\x13", "\x14", "\x15", "\x16", "\x17", "\x18", "\x19", "\x1a", "\x1b", "\x1c", "\x1d", "\x1e", "\x1f", (ch = String.fromCharCode)(0x0085), ch(0x00A0), ch(0x2028), ch(0x2029)];
+  Escaper.LIST_ESCAPEES = ['\\', '\\\\', '\\"', '"', "\x00", "\x01", "\x02", "\x03", "\x04", "\x05", "\x06", "\x07", "\x08", "\x09", "\x0a", "\x0b", "\x0c", "\x0d", "\x0e", "\x0f", "\x10", "\x11", "\x12", "\x13", "\x14", "\x15", "\x16", "\x17", "\x18", "\x19", "\x1a", "\x1b", "\x1c", "\x1d", "\x1e", "\x1f", (ch = String.fromCharCode)(0x0085), ch(0x00A0), ch(0x2028), ch(0x2029)];
 
-  Escaper.LIST_ESCAPED = ['\\"', '\\\\', '\\"', "\\0", "\\x01", "\\x02", "\\x03", "\\x04", "\\x05", "\\x06", "\\a", "\\b", "\\t", "\\n", "\\v", "\\f", "\\r", "\\x0e", "\\x0f", "\\x10", "\\x11", "\\x12", "\\x13", "\\x14", "\\x15", "\\x16", "\\x17", "\\x18", "\\x19", "\\x1a", "\\e", "\\x1c", "\\x1d", "\\x1e", "\\x1f", "\\N", "\\_", "\\L", "\\P"];
+  Escaper.LIST_ESCAPED = ['\\\\', '\\"', '\\"', '\\"', "\\0", "\\x01", "\\x02", "\\x03", "\\x04", "\\x05", "\\x06", "\\a", "\\b", "\\t", "\\n", "\\v", "\\f", "\\r", "\\x0e", "\\x0f", "\\x10", "\\x11", "\\x12", "\\x13", "\\x14", "\\x15", "\\x16", "\\x17", "\\x18", "\\x19", "\\x1a", "\\e", "\\x1c", "\\x1d", "\\x1e", "\\x1f", "\\N", "\\_", "\\L", "\\P"];
 
   Escaper.MAPPING_ESCAPEES_TO_ESCAPED = (function() {
     var i, j, mapping, ref;
@@ -79,7 +78,7 @@ Escaper = (function() {
 
   Escaper.PATTERN_CHARACTERS_TO_ESCAPE = new Pattern('[\\x00-\\x1f]|\xc2\x85|\xc2\xa0|\xe2\x80\xa8|\xe2\x80\xa9');
 
-  Escaper.PATTERN_MAPPING_ESCAPEES = new Pattern(Escaper.LIST_ESCAPEES.join('|'));
+  Escaper.PATTERN_MAPPING_ESCAPEES = new Pattern(Escaper.LIST_ESCAPEES.join('|').split('\\').join('\\\\'));
 
   Escaper.PATTERN_SINGLE_QUOTING = new Pattern('[\\s\'":{}[\\],&*#?]|^[-?|<>=!%@`]');
 
@@ -112,7 +111,6 @@ Escaper = (function() {
 module.exports = Escaper;
 
 
-
 },{"./Pattern":7}],3:[function(require,module,exports){
 var DumpException,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
@@ -142,7 +140,6 @@ DumpException = (function(superClass) {
 module.exports = DumpException;
 
 
-
 },{}],4:[function(require,module,exports){
 var ParseException,
   extend = function(child, parent) { for (var key in parent) { if (hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; },
@@ -170,7 +167,6 @@ ParseException = (function(superClass) {
 })(Error);
 
 module.exports = ParseException;
-
 
 
 },{}],5:[function(require,module,exports){
@@ -656,7 +652,6 @@ Inline = (function() {
 })();
 
 module.exports = Inline;
-
 
 
 },{"./Escaper":2,"./Exception/DumpException":3,"./Exception/ParseException":4,"./Pattern":7,"./Unescaper":8,"./Utils":9}],6:[function(require,module,exports){
@@ -1260,7 +1255,6 @@ Parser = (function() {
 module.exports = Parser;
 
 
-
 },{"./Exception/ParseException":4,"./Inline":5,"./Pattern":7,"./Utils":9}],7:[function(require,module,exports){
 var Pattern;
 
@@ -1382,7 +1376,6 @@ Pattern = (function() {
 module.exports = Pattern;
 
 
-
 },{}],8:[function(require,module,exports){
 var Pattern, Unescaper, Utils;
 
@@ -1466,7 +1459,6 @@ Unescaper = (function() {
 })();
 
 module.exports = Unescaper;
-
 
 
 },{"./Pattern":7,"./Utils":9}],9:[function(require,module,exports){
@@ -1755,7 +1747,6 @@ Utils = (function() {
 module.exports = Utils;
 
 
-
 },{"./Pattern":7}],10:[function(require,module,exports){
 var Dumper, Parser, Utils, Yaml;
 
@@ -1860,7 +1851,6 @@ if (typeof window === "undefined" || window === null) {
 }
 
 module.exports = Yaml;
-
 
 
 },{"./Dumper":1,"./Parser":6,"./Utils":9}]},{},[10]);
