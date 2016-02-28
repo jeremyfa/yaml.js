@@ -142,7 +142,10 @@ describe 'Parsed YAML Collections', ->
                     job: 'Accountant'
                     age: 38
 
+    it 'can ignore trailing empty lines for smallest indent', ->
 
+        expect YAML.parse """ trailing: empty lines\n"""
+        .toEqual trailing: 'empty lines'
 
 describe 'Parsed YAML Inline Collections', ->
 
