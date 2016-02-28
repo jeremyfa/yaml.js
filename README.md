@@ -1,6 +1,8 @@
 yaml.js
 =======
 
+![Build status](https://travis-ci.org/jeremyfa/yaml.js.svg?branch=develop)
+
 Standalone JavaScript YAML 1.2 Parser & Encoder. Works under node.js and all major browsers. Also brings command line YAML/JSON conversion tools.
 
 Mainly inspired from [Symfony Yaml Component](https://github.com/symfony/Yaml).
