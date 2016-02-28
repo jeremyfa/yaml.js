@@ -608,6 +608,7 @@ class Parser
         lines = value.split("\n")
         smallestIndent = -1
         for line in lines
+            continue if Utils.trim(line, ' ').length == 0
             indent = line.length - Utils.ltrim(line).length
             if smallestIndent is -1 or indent < smallestIndent
                 smallestIndent = indent
