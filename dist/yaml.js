@@ -405,7 +405,7 @@ Inline = (function() {
   };
 
   Inline.parseSequence = function(sequence, context) {
-    var e, i, isQuoted, len, output, ref, value;
+    var e, error, i, isQuoted, len, output, ref, value;
     output = [];
     len = sequence.length;
     i = context.i;
@@ -434,8 +434,8 @@ Inline = (function() {
           if (!isQuoted && typeof value === 'string' && (value.indexOf(': ') !== -1 || value.indexOf(":\n") !== -1)) {
             try {
               value = this.parseMapping('{' + value + '}');
-            } catch (_error) {
-              e = _error;
+            } catch (error) {
+              e = error;
             }
           }
           output.push(value);
@@ -709,7 +709,7 @@ Parser = (function() {
   }
 
   Parser.prototype.parse = function(value, exceptionOnInvalidType, objectDecoder) {
-    var alias, allowOverwrite, block, c, context, data, e, first, i, indent, isRef, j, k, key, l, lastKey, len, len1, len2, len3, lineCount, m, matches, mergeNode, n, name, parsed, parsedItem, parser, ref, ref1, ref2, refName, refValue, val, values;
+    var alias, allowOverwrite, block, c, context, data, e, error, error1, error2, first, i, indent, isRef, j, k, key, l, lastKey, len, len1, len2, len3, lineCount, m, matches, mergeNode, n, name, parsed, parsedItem, parser, ref, ref1, ref2, refName, refValue, val, values;
     if (exceptionOnInvalidType == null) {
       exceptionOnInvalidType = false;
     }
@@ -777,8 +777,8 @@ Parser = (function() {
         Inline.configure(exceptionOnInvalidType, objectDecoder);
         try {
           key = Inline.parseScalar(values.key);
-        } catch (_error) {
-          e = _error;
+        } catch (error) {
+          e = error;
           e.parsedLine = this.getRealCurrentLineNb() + 1;
           e.snippet = this.currentLine;
           throw e;
@@ -886,8 +886,8 @@ Parser = (function() {
         if (1 === lineCount || (2 === lineCount && Utils.isEmpty(this.lines[1]))) {
           try {
             value = Inline.parse(this.lines[0], exceptionOnInvalidType, objectDecoder);
-          } catch (_error) {
-            e = _error;
+          } catch (error1) {
+            e = error1;
             e.parsedLine = this.getRealCurrentLineNb() + 1;
             e.snippet = this.currentLine;
             throw e;
@@ -914,8 +914,8 @@ Parser = (function() {
         } else if ((ref2 = Utils.ltrim(value).charAt(0)) === '[' || ref2 === '{') {
           try {
             return Inline.parse(value, exceptionOnInvalidType, objectDecoder);
-          } catch (_error) {
-            e = _error;
+          } catch (error2) {
+            e = error2;
             e.parsedLine = this.getRealCurrentLineNb() + 1;
             e.snippet = this.currentLine;
             throw e;
@@ -1019,7 +1019,7 @@ Parser = (function() {
   };
 
   Parser.prototype.parseValue = function(value, exceptionOnInvalidType, objectDecoder) {
-    var e, foldedIndent, matches, modifiers, pos, ref, ref1, val;
+    var e, error, error1, foldedIndent, matches, modifiers, pos, ref, ref1, val;
     if (0 === value.indexOf('*')) {
       pos = value.indexOf('#');
       if (pos !== -1) {
@@ -1048,14 +1048,14 @@ Parser = (function() {
     }
     try {
       return Inline.parse(value, exceptionOnInvalidType, objectDecoder);
-    } catch (_error) {
-      e = _error;
+    } catch (error) {
+      e = error;
       if (((ref1 = value.charAt(0)) === '[' || ref1 === '{') && e instanceof ParseException && this.isNextLineIndented()) {
         value += "\n" + this.getNextEmbedBlock();
         try {
           return Inline.parse(value, exceptionOnInvalidType, objectDecoder);
-        } catch (_error) {
-          e = _error;
+        } catch (error1) {
+          e = error1;
           e.parsedLine = this.getRealCurrentLineNb() + 1;
           e.snippet = this.currentLine;
           throw e;
@@ -1206,6 +1206,9 @@ Parser = (function() {
     smallestIndent = -1;
     for (j = 0, len = lines.length; j < len; j++) {
       line = lines[j];
+      if (Utils.trim(line, ' ').length === 0) {
+        continue;
+      }
       indent = line.length - Utils.ltrim(line).length;
       if (smallestIndent === -1 || indent < smallestIndent) {
         smallestIndent = indent;
@@ -1694,7 +1697,7 @@ Utils = (function() {
           name = ref[j];
           try {
             xhr = new ActiveXObject(name);
-          } catch (_error) {}
+          } catch (undefined) {}
         }
       }
     }

@@ -68,13 +68,18 @@ describe('Parsed YAML Collections', function() {
       allow: ['localhost', '%.sourceforge.net', '%.freepan.org']
     });
   });
-  return it('can merge key', function() {
+  it('can merge key', function() {
     return expect(YAML.parse("mapping:\n  name: Joe\n  job: Accountant\n  <<:\n    age: 38")).toEqual({
       mapping: {
         name: 'Joe',
         job: 'Accountant',
         age: 38
       }
+    });
+  });
+  return it('can ignore trailing empty lines for smallest indent', function() {
+    return expect(YAML.parse(" trailing: empty lines\n")).toEqual({
+      trailing: 'empty lines'
     });
   });
 });
