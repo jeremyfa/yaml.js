@@ -11,12 +11,12 @@
   "author": "Jeremy Faivre <contact@jeremyfa.com>",
   "main": "./lib/Yaml.js",
   "dependencies": {
-    "argparse": "^0.1.15",
-    "glob": "^4.0.0"
+    "argparse": "^1.0.7",
+    "glob": "^7.0.5"
   },
   "devDependencies": {
-    "coffeeify": "^0.7.0",
-    "benchmark": "^1.0.0",
+    "benchmark": "^2.1.0",
+    "coffeeify": "^2.0.1",
     "jasmine-node": "^1.14.5"
   },
   "bin": {
