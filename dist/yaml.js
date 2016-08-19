@@ -1465,7 +1465,8 @@ module.exports = Unescaper;
 
 
 },{"./Pattern":7,"./Utils":9}],9:[function(require,module,exports){
-var Pattern, Utils;
+var Pattern, Utils,
+  hasProp = {}.hasOwnProperty;
 
 Pattern = require('./Pattern');
 
@@ -1534,7 +1535,20 @@ Utils = (function() {
   };
 
   Utils.isEmpty = function(value) {
-    return !value || value === '' || value === '0' || (value instanceof Array && value.length === 0);
+    return !value || value === '' || value === '0' || (value instanceof Array && value.length === 0) || this.isEmptyObject(value);
+  };
+
+  Utils.isEmptyObject = function(value) {
+    var k;
+    return value instanceof Object && ((function() {
+      var results;
+      results = [];
+      for (k in value) {
+        if (!hasProp.call(value, k)) continue;
+        results.push(k);
+      }
+      return results;
+    })()).length === 0;
   };
 
   Utils.subStrCount = function(string, subString, start, length) {
