@@ -86,7 +86,7 @@ class Utils
     # @return [Boolean] true if the value is empty
     #
     @isEmpty: (value) ->
-        return not(value) or value is '' or value is '0' or (value instanceof Array and value.length is 0)
+        return not(value) or value is '' or value is '0' or (value instanceof Array and value.length is 0) or (value instanceof Object and (k for own k of value).length is 0)
 
 
     # Counts the number of occurences of subString inside string
@@ -100,22 +100,22 @@ class Utils
     #
     @subStrCount: (string, subString, start, length) ->
         c = 0
-        
+
         string = '' + string
         subString = '' + subString
-        
+
         if start?
             string = string[start..]
         if length?
             string = string[0...length]
-        
+
         len = string.length
         sublen = subString.length
         for i in [0...len]
             if subString is string[i...sublen]
                 c++
                 i += sublen - 1
-        
+
         return c
 
 
@@ -308,7 +308,7 @@ class Utils
                             callback(null)
                 xhr.open 'GET', path, true
                 xhr.send null
-            
+
             else
                 # Sync
                 xhr.open 'GET', path, false
