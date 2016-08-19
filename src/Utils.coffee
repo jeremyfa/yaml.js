@@ -79,15 +79,23 @@ class Utils
         return str.replace(regexRight, '')
 
 
-    # Checks if the given value is empty (null, undefined, empty string, string '0')
+    # Checks if the given value is empty (null, undefined, empty string, string '0', empty Array, empty Object)
     #
     # @param [Object] value The value to check
     #
     # @return [Boolean] true if the value is empty
     #
     @isEmpty: (value) ->
-        return not(value) or value is '' or value is '0' or (value instanceof Array and value.length is 0) or (value instanceof Object and (k for own k of value).length is 0)
+        return not(value) or value is '' or value is '0' or (value instanceof Array and value.length is 0) or @isEmptyObject(value)
 
+    # Checks if the given value is an empty object
+    #
+    # @param [Object] value The value to check
+    #
+    # @return [Boolean] true if the value is empty and is an object
+    #
+    @isEmptyObject: (value) ->
+        return value instanceof Object and (k for own k of value).length is 0
 
     # Counts the number of occurences of subString inside string
     #
