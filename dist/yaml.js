@@ -1535,8 +1535,12 @@ Utils = (function() {
   };
 
   Utils.isEmpty = function(value) {
+    return !value || value === '' || value === '0' || (value instanceof Array && value.length === 0) || this.isEmptyObject(value);
+  };
+
+  Utils.isEmptyObject = function(value) {
     var k;
-    return !value || value === '' || value === '0' || (value instanceof Array && value.length === 0) || (value instanceof Object && ((function() {
+    return value instanceof Object && ((function() {
       var results;
       results = [];
       for (k in value) {
@@ -1544,7 +1548,7 @@ Utils = (function() {
         results.push(k);
       }
       return results;
-    })()).length === 0);
+    })()).length === 0;
   };
 
   Utils.subStrCount = function(string, subString, start, length) {
