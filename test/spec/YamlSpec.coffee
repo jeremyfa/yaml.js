@@ -413,17 +413,17 @@ describe 'Parsed YAML Basic Types', ->
         iso8601Date.setTime iso8601Date.getTime() - 5 * 3600 * 1000
 
         spaceSeparatedDate = new Date Date.UTC(2001, 12-1, 14, 21, 59, 43, 10)
-        spaceSeparatedDate.setTime spaceSeparatedDate.getTime() - 5 * 3600 * 1000
+        spaceSeparatedDate.setTime spaceSeparatedDate.getTime() + 5 * 3600 * 1000
 
         withDatesToTime = (input) ->
             res = {}
             for key, val of input
-                res[key] = Math.round(val.getTime() / 1000) * 1000
+                res[key] = val.getTime()
             return res
 
         expect withDatesToTime(YAML.parse """
-            iso8601: 2001-12-14t21:59:43.10-05:00
-            space seperated: 2001-12-14 21:59:43.10 -05:00
+            iso8601: 2001-12-14t21:59:43.010+05:00
+            space seperated: 2001-12-14 21:59:43.010 -05:00
         """)
         .toEqual withDatesToTime (
             'iso8601': iso8601Date
@@ -439,7 +439,7 @@ describe 'Parsed YAML Basic Types', ->
             return input
             res = {}
             for key, val of input
-                res[key] = Math.round(val.getTime() / 1000) * 1000
+                res[key] = val.getTime()
             return res
 
         expect withDatesToTime(YAML.parse """
@@ -1148,7 +1148,7 @@ describe 'Dumped YAML Basic Types', ->
     it 'can be time', ->
 
         iso8601Date = new Date Date.UTC(2001, 12-1, 14, 21, 59, 43, 10)
-        iso8601Date.setTime iso8601Date.getTime() - 5 * 3600 * 1000
+        iso8601Date.setTime iso8601Date.getTime() + 5 * 3600 * 1000
 
         spaceSeparatedDate = new Date Date.UTC(2001, 12-1, 14, 21, 59, 43, 10)
         spaceSeparatedDate.setTime spaceSeparatedDate.getTime() - 5 * 3600 * 1000
@@ -1156,12 +1156,12 @@ describe 'Dumped YAML Basic Types', ->
         withDatesToTime = (input) ->
             res = {}
             for key, val of input
-                res[key] = Math.round(val.getTime() / 1000) * 1000
+                res[key] = val.getTime()
             return res
 
         expect withDatesToTime(YAML.parse """
-            iso8601: 2001-12-14t21:59:43.10-05:00
-            space seperated: 2001-12-14 21:59:43.10 -05:00
+            iso8601: 2001-12-14t21:59:43.010-05:00
+            space seperated: 2001-12-14 21:59:43.010 +05:00
         """)
         .toEqual YAML.parse YAML.dump withDatesToTime (
             'iso8601': iso8601Date
@@ -1177,7 +1177,7 @@ describe 'Dumped YAML Basic Types', ->
             return input
             res = {}
             for key, val of input
-                res[key] = Math.round(val.getTime() / 1000) * 1000
+                res[key] = val.getTime()
             return res
 
         expect withDatesToTime(YAML.parse """
