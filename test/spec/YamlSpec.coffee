@@ -934,7 +934,10 @@ describe 'Dumped YAML Inline Collections', ->
         expect YAML.parse(YAML.dump({key:[]}))
         .toEqual({key:[]})
 
+    it 'can be dumpted empty inline collections', ->
 
+        expect YAML.parse(YAML.dump({key:{}}))
+        .toEqual({key:{}})
 
 describe 'Dumped YAML Basic Types', ->
 

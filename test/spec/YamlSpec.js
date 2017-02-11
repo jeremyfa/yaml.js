@@ -481,11 +481,18 @@ describe('Dumped YAML Inline Collections', function() {
       }
     })));
   });
-  return it('can be dumped empty sequences in mappings', function() {
+  it('can be dumped empty sequences in mappings', function() {
     return expect(YAML.parse(YAML.dump({
       key: []
     }))).toEqual({
       key: []
+    });
+  });
+  return it('can be dumpted empty inline collections', function() {
+    return expect(YAML.parse(YAML.dump({
+      key: {}
+    }))).toEqual({
+      key: {}
     });
   });
 });
