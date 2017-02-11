@@ -3,6 +3,7 @@ Inline          = require './Inline'
 Pattern         = require './Pattern'
 Utils           = require './Utils'
 ParseException  = require './Exception/ParseException'
+ParseMore       = require './Exception/ParseMore'
 
 # Parser parses YAML strings to convert them to JavaScript objects.
 #
@@ -416,25 +417,22 @@ class Parser
             else
                 return val
 
-        try
-            return Inline.parse value, exceptionOnInvalidType, objectDecoder
-        catch e
-            # Try to parse multiline compact sequence or mapping
-            if value.charAt(0) in ['[', '{'] and e instanceof ParseException and @isNextLineIndented()
-                value += "\n" + @getNextEmbedBlock()
+        # Value can be multiline compact sequence or mapping or string
+        if value.charAt(0) in ['[', '{', '"', "'"]
+            while true
                 try
                     return Inline.parse value, exceptionOnInvalidType, objectDecoder
                 catch e
-                    e.parsedLine = @getRealCurrentLineNb() + 1
-                    e.snippet = @currentLine
-
-                    throw e
-
-            else
-                e.parsedLine = @getRealCurrentLineNb() + 1
-                e.snippet = @currentLine
-
-                throw e
+                    if e instanceof ParseMore and @moveToNextLine()
+                        value += "\n" + Utils.trim(@currentLine, ' ')
+                    else
+                        e.parsedLine = @getRealCurrentLineNb() + 1
+                        e.snippet = @currentLine
+                        throw e
+        else
+            if @isNextLineIndented()
+                value += "\n" + @getNextEmbedBlock()
+            return Inline.parse value, exceptionOnInvalidType, objectDecoder
 
         return
 
