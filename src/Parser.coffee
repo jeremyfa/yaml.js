@@ -333,17 +333,16 @@ class Parser
             if indent is newIndent
                 removeComments = not removeCommentsPattern.test @currentLine
 
-            if isItUnindentedCollection and not @isStringUnIndentedCollectionItem(@currentLine) and indent is newIndent
-                @moveToPreviousLine()
-                break
+            if removeComments and @isCurrentLineComment()
+                continue
 
             if @isCurrentLineBlank()
                 data.push @currentLine[newIndent..]
                 continue
 
-            if removeComments and @isCurrentLineComment()
-                if indent is newIndent
-                    continue
+            if isItUnindentedCollection and not @isStringUnIndentedCollectionItem(@currentLine) and indent is newIndent
+                @moveToPreviousLine()
+                break
 
             if indent >= newIndent
                 data.push @currentLine[newIndent..]
