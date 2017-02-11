@@ -19,10 +19,10 @@ class Parser
     PATTERN_DECIMAL:                        new Pattern '\\d+'
     PATTERN_INDENT_SPACES:                  new Pattern '^ +'
     PATTERN_TRAILING_LINES:                 new Pattern '(\n*)$'
-    PATTERN_YAML_HEADER:                    new Pattern '^\\%YAML[: ][\\d\\.]+.*\n'
-    PATTERN_LEADING_COMMENTS:               new Pattern '^(\\#.*?\n)+'
-    PATTERN_DOCUMENT_MARKER_START:          new Pattern '^\\-\\-\\-.*?\n'
-    PATTERN_DOCUMENT_MARKER_END:            new Pattern '^\\.\\.\\.\\s*$'
+    PATTERN_YAML_HEADER:                    new Pattern '^\\%YAML[: ][\\d\\.]+.*\n', 'm'
+    PATTERN_LEADING_COMMENTS:               new Pattern '^(\\#.*?\n)+', 'm'
+    PATTERN_DOCUMENT_MARKER_START:          new Pattern '^\\-\\-\\-.*?\n', 'm'
+    PATTERN_DOCUMENT_MARKER_END:            new Pattern '^\\.\\.\\.\\s*$', 'm'
     PATTERN_FOLDED_SCALAR_BY_INDENTATION:   {}
 
     # Context types
