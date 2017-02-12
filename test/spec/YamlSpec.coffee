@@ -423,11 +423,11 @@ describe 'Parsed YAML Basic Types', ->
 
         expect withDatesToTime(YAML.parse """
             iso8601: 2001-12-14t21:59:43.010+05:00
-            space seperated: 2001-12-14 21:59:43.010 -05:00
+            space separated: 2001-12-14 21:59:43.010 -05:00
         """)
         .toEqual withDatesToTime (
             'iso8601': iso8601Date
-            'space seperated': spaceSeparatedDate
+            'space separated': spaceSeparatedDate
         )
 
 
@@ -1161,11 +1161,11 @@ describe 'Dumped YAML Basic Types', ->
 
         expect withDatesToTime(YAML.parse """
             iso8601: 2001-12-14t21:59:43.010-05:00
-            space seperated: 2001-12-14 21:59:43.010 +05:00
+            space separated: 2001-12-14 21:59:43.010 +05:00
         """)
         .toEqual YAML.parse YAML.dump withDatesToTime (
             'iso8601': iso8601Date
-            'space seperated': spaceSeparatedDate
+            'space separated': spaceSeparatedDate
         )
 
 
