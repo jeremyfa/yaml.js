@@ -266,7 +266,7 @@ class Utils
         # Compute date
         date = new Date Date.UTC(year, month, day, hour, minute, second, fraction)
         if tz_offset
-            date.setTime date.getTime() + tz_offset
+            date.setTime date.getTime() - tz_offset
 
         return date
 
