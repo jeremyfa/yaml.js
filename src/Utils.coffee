@@ -37,7 +37,6 @@ class Utils
     # @return [String] A trimmed string
     #
     @trim: (str, _char = '\\s') ->
-        return str.trim()
         regexLeft = @REGEX_LEFT_TRIM_BY_CHAR[_char]
         unless regexLeft?
             @REGEX_LEFT_TRIM_BY_CHAR[_char] = regexLeft = new RegExp '^'+_char+''+_char+'*'
