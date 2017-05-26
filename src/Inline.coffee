@@ -94,12 +94,12 @@ class Inline
             return 'null'
         type = typeof value
         if type is 'object'
-            if value instanceof Date
-                return value.toISOString()
-            else if objectEncoder?
+            if objectEncoder?
                 result = objectEncoder value
                 if typeof result is 'string' or result?
                     return result
+            if value instanceof Date
+                return value.toISOString()
             return @dumpObject value
         if type is 'boolean'
             return (if value then 'true' else 'false')
