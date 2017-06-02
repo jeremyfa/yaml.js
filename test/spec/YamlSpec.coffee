@@ -356,10 +356,22 @@ describe 'Parsed YAML Basic Types', ->
         expect YAML.parse """
         Is Gus a Liar?: true
         Do I rely on Gus for Sustenance?: false
+        Will Gus trick you?: yes
+        Were you tricked by Gus?: no
+        Do you mistrust Gus?: Y
+        Is Gus evil?: N
+        Heater: on
+        Lights: off
         """
         .toEqual (
             'Is Gus a Liar?': true
             'Do I rely on Gus for Sustenance?': false
+            'Will Gus trick you?': true
+            'Were you tricked by Gus?': false
+            'Do you mistrust Gus?': true
+            'Is Gus evil?': false
+            'Heater': true
+            'Lights': false
         )
 
 
@@ -1097,10 +1109,22 @@ describe 'Dumped YAML Basic Types', ->
         expect YAML.parse """
         Is Gus a Liar?: true
         Do I rely on Gus for Sustenance?: false
+        Will Gus trick you?: yes
+        Were you tricked by Gus?: no
+        Do you mistrust Gus?: Y
+        Is Gus evil?: N
+        Heater: on
+        Lights: off
         """
         .toEqual YAML.parse YAML.dump (
             'Is Gus a Liar?': true
             'Do I rely on Gus for Sustenance?': false
+            'Will Gus trick you?': true
+            'Were you tricked by Gus?': false
+            'Do you mistrust Gus?': true
+            'Is Gus evil?': false
+            'Heater': true
+            'Lights': false
         )
 
 
