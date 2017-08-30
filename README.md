@@ -151,4 +151,10 @@ json2yaml myfile.json --indentation 4
 
 # Watch a full directory and convert any JSON file into its YAML equivalent
 json2yaml mydirectory --pretty --save --recursive
+```
+
+### Credits / Thanks
+
+- [Symfony Yaml Component](https://github.com/symfony/yaml) which was the reference implementation initially.
+- [minj](https://github.com/minj) who did fix various bugs and ported a first batch of unit tests in an earlier version of yamljs.
 
