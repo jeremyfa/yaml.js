@@ -140,7 +140,7 @@ yaml2json myfile.yml --pretty --save
 # Watch a full directory and convert any YAML file into its JSON equivalent
 yaml2json mydirectory --pretty --save --recursive
 
-# Convert JSON to YAML and store output inside a JSON file
+# Convert JSON to YAML and store output inside a YAML file
 json2yaml myfile.json > output.yml
 
 # Output YAML that will be inlined only after 8 levels of indentation
