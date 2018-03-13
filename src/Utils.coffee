@@ -210,6 +210,15 @@ class Utils
         return typeof(input) is 'number' or typeof(input) is 'string' and !isNaN(input) and input.replace(@REGEX_SPACES, '') isnt ''
 
 
+    # Returns a Date object as an ISO String
+    #
+    # @param [Date] date The date object to convert
+    #
+    # @return [String] ISO String representation of date
+    #
+    @dateToISOString: (date) ->
+        date.toISOString()
+
     # Returns a parsed date from the given string
     #
     # @param [String] str The date string to parse
