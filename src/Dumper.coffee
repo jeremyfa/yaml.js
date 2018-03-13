@@ -17,15 +17,16 @@ class Dumper
     # @param [Integer]  indent                  The level of indentation (used internally)
     # @param [Boolean]  exceptionOnInvalidType  true if an exception must be thrown on invalid types (a JavaScript resource or object), false otherwise
     # @param [Function] objectEncoder           A function to serialize custom objects, null otherwise
+    # @param [Function] dateEncoder             A function to serialize date objects, Utils.dateToISOString otherwise
     #
     # @return [String]  The YAML representation of the JavaScript value
     #
-    dump: (input, inline = 0, indent = 0, exceptionOnInvalidType = false, objectEncoder = null) ->
+    dump: (input, inline = 0, indent = 0, exceptionOnInvalidType = false, objectEncoder = null, dateEncoder = Utils.dateToISOString) ->
         output = ''
         prefix = (if indent then Utils.strRepeat(' ', indent) else '')
 
         if inline <= 0 or typeof(input) isnt 'object' or input instanceof Date or Utils.isEmpty(input)
-            output += prefix + Inline.dump(input, exceptionOnInvalidType, objectEncoder)
+            output += prefix + Inline.dump(input, exceptionOnInvalidType, objectEncoder, dateEncoder)
         
         else
             if input instanceof Array
@@ -35,7 +36,7 @@ class Dumper
                     output +=
                         prefix +
                         '- ' +
-                        @dump(value, inline - 1, (if willBeInlined then 0 else indent + @indentation), exceptionOnInvalidType, objectEncoder) +
+                        @dump(value, inline - 1, (if willBeInlined then 0 else indent + @indentation), exceptionOnInvalidType, objectEncoder, dateEncoder) +
                         (if willBeInlined then "\n" else '')
 
             else
@@ -44,9 +45,9 @@ class Dumper
 
                     output +=
                         prefix +
-                        Inline.dump(key, exceptionOnInvalidType, objectEncoder) + ':' +
+                        Inline.dump(key, exceptionOnInvalidType, objectEncoder, dateEncoder) + ':' +
                         (if willBeInlined then ' ' else "\n") +
-                        @dump(value, inline - 1, (if willBeInlined then 0 else indent + @indentation), exceptionOnInvalidType, objectEncoder) +
+                        @dump(value, inline - 1, (if willBeInlined then 0 else indent + @indentation), exceptionOnInvalidType, objectEncoder, dateEncoder) +
                         (if willBeInlined then "\n" else '')
 
         return output

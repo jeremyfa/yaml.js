@@ -1191,6 +1191,19 @@ describe 'Dumped YAML Basic Types', ->
         )
 
 
+describe 'Dumped YAML Custom Types', ->
+
+    it 'can be a custom date', ->
+
+        aDate = new Date Date.UTC(1976, 7-1, 31, 0, 0, 0, 0)
+
+        dateToFrString = (dateObj) ->
+            dateObj.toLocaleDateString('fr-fr')
+
+        expect YAML.dump({date: aDate}, 2, 4, false, null, dateToFrString)
+        .toEqual "date: #{dateToFrString(aDate)}\n"
+
+
 
 describe 'Dumped YAML Blocks', ->
 

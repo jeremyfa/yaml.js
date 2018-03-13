@@ -84,18 +84,21 @@ class Inline
     # @param [Object]   value                   The JavaScript variable to convert
     # @param [Boolean]  exceptionOnInvalidType  true if an exception must be thrown on invalid types (a JavaScript resource or object), false otherwise
     # @param [Function] objectEncoder           A function to serialize custom objects, null otherwise
+    # @param [Function] dateEncoder             A function to serialize date objects, Utils.dateToISOString otherwise
     #
     # @return [String]  The YAML string representing the JavaScript object
     #
     # @throw [DumpException]
     #
-    @dump: (value, exceptionOnInvalidType = false, objectEncoder = null) ->
+    @dump: (value, exceptionOnInvalidType = false, objectEncoder = null, dateEncoder = Utils.dateToISOString) ->
         if not value?
             return 'null'
         type = typeof value
         if type is 'object'
-            if value instanceof Date
-                return value.toISOString()
+            if value instanceof Date and dateEncoder?
+                result = dateEncoder value
+                if typeof result is 'string' or result?
+                    return result
             else if objectEncoder?
                 result = objectEncoder value
                 if typeof result is 'string' or result?

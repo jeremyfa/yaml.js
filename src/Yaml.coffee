@@ -72,14 +72,15 @@ class Yaml
     # @param [Integer]  indent                  The amount of spaces to use for indentation of nested nodes.
     # @param [Boolean]  exceptionOnInvalidType  true if an exception must be thrown on invalid types (a JavaScript resource or object), false otherwise
     # @param [Function] objectEncoder           A function to serialize custom objects, null otherwise
+    # @param [Function] dateEncoder             A function to serialize date objects, Utils.dateToISOString otherwise
     #
     # @return [String]  A YAML string representing the original JavaScript object
     #
-    @dump: (input, inline = 2, indent = 4, exceptionOnInvalidType = false, objectEncoder = null) ->
+    @dump: (input, inline = 2, indent = 4, exceptionOnInvalidType = false, objectEncoder = null, dateEncoder = Utils.dateToISOString) ->
         yaml = new Dumper()
         yaml.indentation = indent
 
-        return yaml.dump(input, inline, 0, exceptionOnInvalidType, objectEncoder)
+        return yaml.dump(input, inline, 0, exceptionOnInvalidType, objectEncoder, dateEncoder)
 
 
     # Alias of dump() method for compatibility reasons.
