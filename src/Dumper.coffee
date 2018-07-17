@@ -22,6 +22,10 @@ class Dumper
     #
     dump: (input, inline = 0, indent = 0, exceptionOnInvalidType = false, objectEncoder = null) ->
         output = ''
+        
+        if typeof(input) is 'function'
+            return output
+        
         prefix = (if indent then Utils.strRepeat(' ', indent) else '')
 
         if inline <= 0 or typeof(input) isnt 'object' or input instanceof Date or Utils.isEmpty(input)
