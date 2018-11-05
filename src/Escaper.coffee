@@ -31,7 +31,7 @@ class Escaper
 
     # Other precompiled patterns
     @PATTERN_MAPPING_ESCAPEES:      new Pattern @LIST_ESCAPEES.join('|').split('\\').join('\\\\')
-    @PATTERN_SINGLE_QUOTING:        new Pattern '[\\s\'":{}[\\],&*#?]|^[-?|<>=!%@`]'
+    @PATTERN_SINGLE_QUOTING:        new Pattern '[\\s\'"{}[\\],&*#?]|^[-?|<>=!%@`]'
 
 
 
