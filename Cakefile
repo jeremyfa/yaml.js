@@ -69,7 +69,7 @@ task 'build', 'build project', ->
 
     # Minify
     minify = ->
-        exec 'uglifyjs --mangle sort '+esc(distDir+'/yaml.js')+' > '+esc(distDir+'/yaml.min.js'), (err, res) ->
+        exec 'uglifyjs '+esc(distDir+'/yaml.js')+' > '+esc(distDir+'/yaml.min.js'), (err, res) ->
             if err then throw err
 
             console.log "Minified yaml.min.js"
@@ -106,7 +106,13 @@ task 'build', 'build project', ->
 task 'test', 'test project', ->
 
     # Test
-    spawn 'node', [modulesDir+'/jasmine-node/lib/jasmine-node/cli.js', '--verbose', '--coffee', specDir+'/YamlSpec.coffee'], stdio: "inherit"
+    proc = spawn 'node', [modulesDir+'/jasmine-node/lib/jasmine-node/cli.js', '--verbose', '--coffee', specDir+'/YamlSpec.coffee'], stdio: "inherit"
+    proc.on 'exit', (code) ->
+        if code != 0
+            process.exit(code)
+    proc.on 'close', (code) ->
+        if code != 0
+            process.exit(code)
 
 
 task 'doc', 'generate documentation', ->
