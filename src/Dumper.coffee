@@ -38,7 +38,8 @@ class Dumper
 
                     output +=
                         prefix +
-                        '- ' +
+                        '-' +
+                        (if willBeInlined then ' ' else "\n") +
                         @dump(value, inline - 1, (if willBeInlined then 0 else indent + @indentation), exceptionOnInvalidType, objectEncoder) +
                         (if willBeInlined then "\n" else '')
 
