@@ -1,7 +1,14 @@
-yaml.js
-=======
 
 ![Build status](https://travis-ci.org/jeremyfa/yaml.js.svg?branch=develop)
+
+⚠️ Development of this library has slowed-down
+
+_I am still using **yaml.js** in production for some projects, it works fine in all the situations I needed it. That said, I am not actively working with raw javascript environments (mostly using [haxe](https://haxe.org) now, if you are curious), thus I don't have much bandwidth to actively provide support to the posted issues asking for new features or bugfixes that don't affect my own use cases of the library. If this situation is an issue for you, I suggest you use [js-yaml](https://github.com/nodeca/js-yaml) which is a great and pretty feature-complete yaml parser and dumper for javascript. Pull Requests are still welcome, as long as they don't break the current set of unit tests!_
+
+_Thanks 🙏_
+
+yaml.js
+=======
 
 Standalone JavaScript YAML 1.2 Parser & Encoder. Works under node.js and all major browsers. Also brings command line YAML/JSON conversion tools.
 
