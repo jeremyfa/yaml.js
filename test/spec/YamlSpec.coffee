@@ -379,6 +379,20 @@ describe 'Parsed YAML Basic Types', ->
         )
 
 
+    it 'preserves strings that start with a hexadecimal prefix', ->
+
+        for value in ['0xn5t', '0x', '0xnothex', '0x12g', '0x1.2', '0x1-2']
+            expect(YAML.parse(value)).toBe value
+            expect(YAML.parse(YAML.stringify(value))).toBe value
+
+
+    it 'can be hexadecimal integers', ->
+
+        for value in ['0x0', '0xff', '0xAB', '0Xab']
+            expect(YAML.parse(value)).toBe parseInt(value, 16)
+            expect(YAML.parse(YAML.stringify(value))).toBe value
+
+
     it 'can be integers as map keys', ->
 
         expect YAML.parse """

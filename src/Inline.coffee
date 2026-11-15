@@ -439,7 +439,7 @@ class Inline
 
                                 return null
                     when '0'
-                        if '0x' is scalar[0...2]
+                        if /^0x[0-9a-f]+$/i.test scalar
                             return Utils.hexDec scalar
                         else if Utils.isDigits scalar
                             return Utils.octDec scalar
