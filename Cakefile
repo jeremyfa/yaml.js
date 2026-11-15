@@ -106,7 +106,8 @@ task 'build', 'build project', ->
 task 'test', 'test project', ->
 
     # Test
-    proc = spawn 'node', [modulesDir+'/jasmine-node/lib/jasmine-node/cli.js', '--verbose', '--coffee', specDir+'/YamlSpec.coffee'], stdio: "inherit"
+    specs = ['YamlSpec.coffee', 'CliSpec.js'].map (name) -> path.relative(process.cwd(), specDir+'/'+name)
+    proc = spawn 'node', [modulesDir+'/jasmine-node/lib/jasmine-node/cli.js', '--verbose', '--coffee'].concat(specs), stdio: "inherit"
     proc.on 'exit', (code) ->
         if code != 0
             process.exit(code)
