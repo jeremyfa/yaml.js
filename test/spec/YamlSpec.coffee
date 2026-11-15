@@ -431,6 +431,27 @@ describe 'Parsed YAML Basic Types', ->
         )
 
 
+    it 'can parse timestamp offsets without a colon', ->
+
+        cases = [
+            ['2018-01-31T16:40:39-0500', '2018-01-31T21:40:39.000Z']
+            ['2018-01-31T16:40:39+0530', '2018-01-31T11:10:39.000Z']
+            ['2018-01-31T16:40:39.01-0500', '2018-01-31T21:40:39.010Z']
+            ['2018-01-31T16:40:39.1234+0530', '2018-01-31T11:10:39.123Z']
+            ['2018-01-31T16:40:39+0000', '2018-01-31T16:40:39.000Z']
+            ['2018-01-31 16:40:39 -0500', '2018-01-31T21:40:39.000Z']
+        ]
+        for [value, expected] in cases
+            expect(YAML.parse(value)).toEqual new Date(expected)
+            expect(YAML.parse(YAML.stringify(value))).toBe value
+
+
+    it 'requires a dot before fractional seconds', ->
+
+        for value in ['2018-01-31T16:40:39x01-05:00', '2018-01-31T16:40:39x0500']
+            expect(YAML.parse(value)).toBe value
+
+
     it 'can be date', ->
 
         aDate = new Date Date.UTC(1976, 7-1, 31, 0, 0, 0, 0)
