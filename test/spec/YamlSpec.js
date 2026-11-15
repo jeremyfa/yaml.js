@@ -244,6 +244,27 @@ describe('Parsed YAML Basic Types', function() {
       'space separated': spaceSeparatedDate
     }));
   });
+  it('can parse timestamp offsets without a colon', function() {
+    var cases, expected, i, len, results, value;
+    cases = [['2018-01-31T16:40:39-0500', '2018-01-31T21:40:39.000Z'], ['2018-01-31T16:40:39+0530', '2018-01-31T11:10:39.000Z'], ['2018-01-31T16:40:39.01-0500', '2018-01-31T21:40:39.010Z'], ['2018-01-31T16:40:39.1234+0530', '2018-01-31T11:10:39.123Z'], ['2018-01-31T16:40:39+0000', '2018-01-31T16:40:39.000Z'], ['2018-01-31 16:40:39 -0500', '2018-01-31T21:40:39.000Z']];
+    results = [];
+    for (i = 0, len = cases.length; i < len; i++) {
+      [value, expected] = cases[i];
+      expect(YAML.parse(value)).toEqual(new Date(expected));
+      results.push(expect(YAML.parse(YAML.stringify(value))).toBe(value));
+    }
+    return results;
+  });
+  it('requires a dot before fractional seconds', function() {
+    var i, len, ref, results, value;
+    ref = ['2018-01-31T16:40:39x01-05:00', '2018-01-31T16:40:39x0500'];
+    results = [];
+    for (i = 0, len = ref.length; i < len; i++) {
+      value = ref[i];
+      results.push(expect(YAML.parse(value)).toBe(value));
+    }
+    return results;
+  });
   return it('can be date', function() {
     var aDate, withDatesToTime;
     aDate = new Date(Date.UTC(1976, 7 - 1, 31, 0, 0, 0, 0));
