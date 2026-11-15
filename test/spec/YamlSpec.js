@@ -210,6 +210,28 @@ describe('Parsed YAML Basic Types', function() {
       'negative one-thousand': -1000
     });
   });
+  it('preserves strings that start with a hexadecimal prefix', function() {
+    var i, len, ref, results, value;
+    ref = ['0xn5t', '0x', '0xnothex', '0x12g', '0x1.2', '0x1-2'];
+    results = [];
+    for (i = 0, len = ref.length; i < len; i++) {
+      value = ref[i];
+      expect(YAML.parse(value)).toBe(value);
+      results.push(expect(YAML.parse(YAML.stringify(value))).toBe(value));
+    }
+    return results;
+  });
+  it('can be hexadecimal integers', function() {
+    var i, len, ref, results, value;
+    ref = ['0x0', '0xff', '0xAB', '0Xab'];
+    results = [];
+    for (i = 0, len = ref.length; i < len; i++) {
+      value = ref[i];
+      expect(YAML.parse(value)).toBe(parseInt(value, 16));
+      results.push(expect(YAML.parse(YAML.stringify(value))).toBe(value));
+    }
+    return results;
+  });
   it('can be integers as map keys', function() {
     return expect(YAML.parse("1: one\n2: two\n3: three")).toEqual({
       1: 'one',
