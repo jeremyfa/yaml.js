@@ -76,7 +76,7 @@ try {
         if (output.length === 0) {
             return rootPath;
         }
-        if (output.charAt(0) !== '/') {
+        if (!path.isAbsolute(output)) {
             output = path.normalize(rootPath + '/./' + output);
         }
         if (output.length > 1 && output.charAt(output.length - 1) === '/') {
