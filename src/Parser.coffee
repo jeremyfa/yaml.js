@@ -304,6 +304,8 @@ class Parser
     # @throw [ParseException]   When indentation problem are detected
     #
     getNextEmbedBlock: (indentation = null, includeUnindentedCollection = false) ->
+        # Compact sequence mappings can put the scalar header on the preceding line.
+        scalarIndent = if @PATTERN_FOLDED_SCALAR_END.test(@currentLine) then @getCurrentLineIndentation() else null
         @moveToNextLine()
 
         if not indentation?
@@ -325,17 +327,20 @@ class Parser
 
         # Comments must not be removed inside a string block (ie. after a line ending with "|")
         # They must not be removed inside a sub-embedded block as well
-        removeCommentsPattern = @PATTERN_FOLDED_SCALAR_END
-        removeComments = not removeCommentsPattern.test @currentLine
+        if not scalarIndent? and @PATTERN_FOLDED_SCALAR_END.test @currentLine
+            scalarIndent = @getCurrentLineIndentation()
 
         while @moveToNextLine()
             indent = @getCurrentLineIndentation()
 
-            if indent is newIndent
-                removeComments = not removeCommentsPattern.test @currentLine
+            if scalarIndent? and indent <= scalarIndent and not @isCurrentLineBlank()
+                scalarIndent = null
 
-            if removeComments and @isCurrentLineComment()
-                continue
+            unless scalarIndent?
+                if @isCurrentLineComment()
+                    continue
+                if @PATTERN_FOLDED_SCALAR_END.test @currentLine
+                    scalarIndent = indent
 
             if @isCurrentLineBlank()
                 data.push @currentLine[newIndent..]
@@ -356,6 +361,9 @@ class Parser
                 throw new ParseException 'Indentation problem.', @getRealCurrentLineNb() + 1, @currentLine
 
 
+        # Keep the line break before the next node for scalars using keep chomping.
+        if @currentLineNb < @lines.length - 1
+            data.push ''
         return data.join "\n"
 
 

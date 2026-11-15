@@ -453,6 +453,32 @@ describe 'Parsed YAML Basic Types', ->
 
 describe 'Parsed YAML Blocks', ->
 
+    it 'preserves hash-prefixed text in nested literal and folded blocks', ->
+
+        for separator in ['|', '>', '|-', '>-', '|+', '>+']
+            value = "item:\n  1:\n    - value: #{separator}\n        ### Header\n"
+            expected = if '-' in separator then '### Header' else '### Header\n'
+            expect(YAML.parse(value)).toEqual item: {1: [{value: expected}]}
+
+
+    it 'preserves nested block text while ignoring following comments', ->
+
+        expect YAML.parse """
+        item:
+          entries:
+            - value: |+
+                ### Header
+                text ending with >
+                # More text
+            # A comment outside the scalar
+            - value: done
+        """
+        .toEqual item: entries: [
+            {value: '### Header\ntext ending with >\n# More text\n'}
+            {value: 'done'}
+        ]
+
+
     it 'can be single ending newline', ->
 
         expect YAML.parse """
