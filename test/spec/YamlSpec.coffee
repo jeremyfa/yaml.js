@@ -8,6 +8,27 @@ unless YAML?
 
 describe 'Parsed YAML Collections', ->
 
+    it 'preserves line breaks around more-indented folded content', ->
+        expect YAML.parse 'text: >-\n  paragraph\n    code\n  end\n'
+        .toEqual text: 'paragraph\n  code\nend'
+
+    it 'preserves more-indented whitespace before a folded Markdown list', ->
+        expect YAML.parse 'text: >-\n  first paragraph\n\n  second paragraph\n    \n    * item a\n    * item b\n\n  final paragraph\n'
+        .toEqual text: 'first paragraph\nsecond paragraph\n  \n  * item a\n  * item b\n\nfinal paragraph'
+
+    it 'preserves blank lines before more-indented folded content', ->
+        expect YAML.parse 'text: >-\n  paragraph\n\n\n    code\n  end\n'
+        .toEqual text: 'paragraph\n\n\n  code\nend'
+
+    it 'folds ordinary paragraphs while retaining trailing content spaces', ->
+        expect YAML.parse 'text: >-\n  first  \n  line\n\n  second\n'
+        .toEqual text: 'first   line\nsecond'
+
+    it 'retains folded block chomping around more-indented content', ->
+        for indicator, suffix of {'-': '', '': '\n', '+': '\n\n'}
+            expect YAML.parse 'text: >'+indicator+'\n  first\n    code\n  last\n\n'
+            .toEqual text: 'first\n  code\nlast'+suffix
+
     it 'can be simple sequence', ->
 
         expect YAML.parse """
