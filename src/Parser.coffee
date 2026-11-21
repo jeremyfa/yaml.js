@@ -494,11 +494,20 @@ class Parser
         # Remove line breaks of each lines except the empty and more indented ones
         if '>' is separator
             newText = ''
-            for line in text.split "\n"
-                if line.length is 0 or line.charAt(0) is ' '
-                    newText = Utils.rtrim(newText, ' ') + line + "\n"
-                else
-                    newText += line + ' '
+            lines = text.split "\n"
+            for line, index in lines
+                newText += line
+                if index is lines.length - 1
+                    continue
+
+                if line.length > 0 and line.charAt(0) isnt ' '
+                    nextIndex = index + 1
+                    ++nextIndex while nextIndex < lines.length and lines[nextIndex].length is 0
+                    if nextIndex < lines.length and lines[nextIndex].charAt(0) isnt ' '
+                        newText += ' ' if nextIndex is index + 1
+                        continue
+
+                newText += "\n"
             text = newText
 
         if '+' isnt indicator
