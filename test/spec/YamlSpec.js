@@ -8,6 +8,46 @@ if (typeof YAML === "undefined" || YAML === null) {
 // Parsing
 
 describe('Parsed YAML Collections', function() {
+  it('can parse pretty-printed JSON mappings', function() {
+    var data;
+    data = {
+      number: 42,
+      text: 'hello',
+      enabled: true,
+      empty: null
+    };
+    return expect(YAML.parse(JSON.stringify(data, null, 2))).toEqual(data);
+  });
+  it('can parse pretty-printed JSON sequences', function() {
+    var data;
+    data = [
+      42,
+      'hello',
+      false,
+      null,
+      {
+        nested: ['a',
+      2]
+      }
+    ];
+    return expect(YAML.parse(JSON.stringify(data, null, 2))).toEqual(data);
+  });
+  it('can parse tab-indented JSON with CRLF line endings', function() {
+    var data;
+    data = {
+      text: 'value',
+      array: [1, 2]
+    };
+    return expect(YAML.parse(JSON.stringify(data, null, '\t').replace(/\n/g, '\r\n'))).toEqual(data);
+  });
+  it('preserves spaces and escaped newlines inside quoted JSON values', function() {
+    var data;
+    data = {
+      text: '  first\nsecond  ',
+      empty: ''
+    };
+    return expect(YAML.parse(JSON.stringify(data, null, 2))).toEqual(data);
+  });
   it('can be simple sequence', function() {
     return expect(YAML.parse("- apple\n- banana\n- carrot")).toEqual(['apple', 'banana', 'carrot']);
   });

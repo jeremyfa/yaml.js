@@ -8,6 +8,26 @@ unless YAML?
 
 describe 'Parsed YAML Collections', ->
 
+    it 'can parse pretty-printed JSON mappings', ->
+        data = {number: 42, text: 'hello', enabled: true, empty: null}
+        expect YAML.parse JSON.stringify(data, null, 2)
+        .toEqual data
+
+    it 'can parse pretty-printed JSON sequences', ->
+        data = [42, 'hello', false, null, {nested: ['a', 2]}]
+        expect YAML.parse JSON.stringify(data, null, 2)
+        .toEqual data
+
+    it 'can parse tab-indented JSON with CRLF line endings', ->
+        data = {text: 'value', array: [1, 2]}
+        expect YAML.parse JSON.stringify(data, null, '\t').replace(/\n/g, '\r\n')
+        .toEqual data
+
+    it 'preserves spaces and escaped newlines inside quoted JSON values', ->
+        data = {text: '  first\nsecond  ', empty: ''}
+        expect YAML.parse JSON.stringify(data, null, 2)
+        .toEqual data
+
     it 'can be simple sequence', ->
 
         expect YAML.parse """
