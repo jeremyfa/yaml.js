@@ -92,7 +92,7 @@ class Parser
                         data.push null
 
                 else
-                    if values.leadspaces?.length and matches = @PATTERN_COMPACT_NOTATION.exec values.value
+                    if values.leadspaces?.length and (@PATTERN_COMPACT_NOTATION.exec(values.value) or @PATTERN_SEQUENCE_ITEM.exec(values.value))
 
                         # This is a compact notation element, add to next block and parse
                         c = @getRealCurrentLineNb()
