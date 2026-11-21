@@ -8,6 +8,40 @@ unless YAML?
 
 describe 'Parsed YAML Collections', ->
 
+    it 'resolves anchors attached to descending numeric mapping keys', ->
+        expect YAML.parse """
+        colors:
+          600: &dark '#343741'
+          500: &medium '#565656'
+          300: &light '#C0BFC0'
+        dark: *dark
+        medium: *medium
+        light: *light
+        """
+        .toEqual
+            colors: {600: '#343741', 500: '#565656', 300: '#C0BFC0'}
+            dark: '#343741'
+            medium: '#565656'
+            light: '#C0BFC0'
+
+    it 'resolves a numeric-key anchor following a string key', ->
+        expect YAML.parse """
+        label: unanchored
+        0: &zero 0
+        copy: *zero
+        """
+        .toEqual label: 'unanchored', 0: 0, copy: 0
+
+    it 'resolves block anchors attached to numeric keys', ->
+        expect YAML.parse """
+        9: &first
+          name: first
+        2: &second
+          name: second
+        copy: *second
+        """
+        .toEqual 9: {name: 'first'}, 2: {name: 'second'}, copy: {name: 'second'}
+
     it 'can be simple sequence', ->
 
         expect YAML.parse """

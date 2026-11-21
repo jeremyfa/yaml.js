@@ -266,10 +266,7 @@ class Parser
                 if data instanceof Array
                     @refs[isRef] = data[data.length-1]
                 else
-                    lastKey = null
-                    for key of data
-                        lastKey = key
-                    @refs[isRef] = data[lastKey]
+                    @refs[isRef] = data[key]
 
 
         if Utils.isEmpty(data)
