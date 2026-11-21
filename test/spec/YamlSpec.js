@@ -8,6 +8,38 @@ if (typeof YAML === "undefined" || YAML === null) {
 // Parsing
 
 describe('Parsed YAML Collections', function() {
+  it('resolves anchors attached to descending numeric mapping keys', function() {
+    return expect(YAML.parse("colors:\n  600: &dark '#343741'\n  500: &medium '#565656'\n  300: &light '#C0BFC0'\ndark: *dark\nmedium: *medium\nlight: *light")).toEqual({
+      colors: {
+        600: '#343741',
+        500: '#565656',
+        300: '#C0BFC0'
+      },
+      dark: '#343741',
+      medium: '#565656',
+      light: '#C0BFC0'
+    });
+  });
+  it('resolves a numeric-key anchor following a string key', function() {
+    return expect(YAML.parse("label: unanchored\n0: &zero 0\ncopy: *zero")).toEqual({
+      label: 'unanchored',
+      0: 0,
+      copy: 0
+    });
+  });
+  it('resolves block anchors attached to numeric keys', function() {
+    return expect(YAML.parse("9: &first\n  name: first\n2: &second\n  name: second\ncopy: *second")).toEqual({
+      9: {
+        name: 'first'
+      },
+      2: {
+        name: 'second'
+      },
+      copy: {
+        name: 'second'
+      }
+    });
+  });
   it('can be simple sequence', function() {
     return expect(YAML.parse("- apple\n- banana\n- carrot")).toEqual(['apple', 'banana', 'carrot']);
   });
