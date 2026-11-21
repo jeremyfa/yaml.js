@@ -8,6 +8,31 @@ if (typeof YAML === "undefined" || YAML === null) {
 // Parsing
 
 describe('Parsed YAML Collections', function() {
+  it('can parse compact nested sequences', function() {
+    return expect(YAML.parse("- - test\n  - test1\n- - test2")).toEqual([['test', 'test1'], ['test2']]);
+  });
+  it('can mix compact nested sequences and mappings', function() {
+    return expect(YAML.parse("rows:\n  - - name: first\n      value: 1\n    - name: second\n  - plain")).toEqual({
+      rows: [
+        [
+          {
+            name: 'first',
+            value: 1
+          },
+          {
+            name: 'second'
+          }
+        ],
+        'plain'
+      ]
+    });
+  });
+  it('can parse several compact sequence levels', function() {
+    return expect(YAML.parse("- - - first\n    - second")).toEqual([[['first', 'second']]]);
+  });
+  it('can parse an empty compact sequence item', function() {
+    return expect(YAML.parse('- -')).toEqual([[null]]);
+  });
   it('can be simple sequence', function() {
     return expect(YAML.parse("- apple\n- banana\n- carrot")).toEqual(['apple', 'banana', 'carrot']);
   });

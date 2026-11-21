@@ -8,6 +8,35 @@ unless YAML?
 
 describe 'Parsed YAML Collections', ->
 
+    it 'can parse compact nested sequences', ->
+        expect YAML.parse """
+        - - test
+          - test1
+        - - test2
+        """
+        .toEqual [['test', 'test1'], ['test2']]
+
+    it 'can mix compact nested sequences and mappings', ->
+        expect YAML.parse """
+        rows:
+          - - name: first
+              value: 1
+            - name: second
+          - plain
+        """
+        .toEqual rows: [[{name: 'first', value: 1}, {name: 'second'}], 'plain']
+
+    it 'can parse several compact sequence levels', ->
+        expect YAML.parse """
+        - - - first
+            - second
+        """
+        .toEqual [[['first', 'second']]]
+
+    it 'can parse an empty compact sequence item', ->
+        expect YAML.parse '- -'
+        .toEqual [[null]]
+
     it 'can be simple sequence', ->
 
         expect YAML.parse """
