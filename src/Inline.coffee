@@ -170,7 +170,7 @@ class Inline
             {i} = context
 
             if delimiters?
-                tmp = Utils.ltrim scalar[i..], ' '
+                tmp = Utils.ltrim scalar[i..], '[ \\t\\r\\n]'
                 if not(tmp.charAt(0) in delimiters)
                     throw new ParseException 'Unexpected characters ('+scalar[i..]+').'
 
@@ -189,7 +189,7 @@ class Inline
                 joinedDelimiters = delimiters.join('|')
                 pattern = @PATTERN_SCALAR_BY_DELIMITERS[joinedDelimiters]
                 unless pattern?
-                    pattern = new Pattern '^(.+?)('+joinedDelimiters+')'
+                    pattern = new Pattern '^(.+?)[ \\t\\r\\n]*('+joinedDelimiters+')'
                     @PATTERN_SCALAR_BY_DELIMITERS[joinedDelimiters] = pattern
                 if match = pattern.exec scalar[i..]
                     output = match[1]
@@ -262,7 +262,7 @@ class Inline
                     {i} = context
                 when ']'
                     return output
-                when ',', ' ', "\n"
+                when ',', ' ', "\t", "\r", "\n"
                     # Do nothing
                 else
                     isQuoted = (sequence.charAt(i) in ['"', "'"])
@@ -306,7 +306,7 @@ class Inline
         while i < len
             context.i = i
             switch mapping.charAt(i)
-                when ' ', ',', "\n"
+                when ' ', ',', "\t", "\r", "\n"
                     ++i
                     context.i = i
                     shouldContinueWhileLoop = true
@@ -318,7 +318,7 @@ class Inline
                 continue
 
             # Key
-            key = @parseScalar mapping, [':', ' ', "\n"], ['"', "'"], context, false
+            key = @parseScalar mapping, [':', ' ', "\t", "\r", "\n"], ['"', "'"], context, false
             {i} = context
 
             # Value
@@ -347,7 +347,7 @@ class Inline
                         if output[key] == undefined
                             output[key] = value
                         done = true
-                    when ':', ' ', "\n"
+                    when ':', ' ', "\t", "\r", "\n"
                         # Do nothing
                     else
                         value = @parseScalar mapping, [',', '}'], ['"', "'"], context
