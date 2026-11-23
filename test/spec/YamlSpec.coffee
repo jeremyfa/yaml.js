@@ -147,6 +147,54 @@ describe 'Parsed YAML Collections', ->
         expect YAML.parse """ trailing: empty lines\n"""
         .toEqual trailing: 'empty lines'
 
+describe 'Timestamp mapping keys', ->
+
+    it 'keeps timestamps that differ only in milliseconds distinct', ->
+        expect YAML.parse """
+        2016-01-01 12:34:56.789: foo
+        2016-01-01 12:34:56.790: bar
+        """
+        .toEqual '2016-01-01T12:34:56.789Z': 'foo', '2016-01-01T12:34:56.790Z': 'bar'
+
+    it 'supports explicit scalar timestamp keys', ->
+        expect YAML.parse """
+        ? 2016-01-01 12:34:56.789
+        : foo
+        ? 2016-01-02 12:34:56.789
+        : bar
+        """
+        .toEqual '2016-01-01T12:34:56.789Z': 'foo', '2016-01-02T12:34:56.789Z': 'bar'
+
+    it 'normalizes timestamp offsets to UTC without losing milliseconds', ->
+        expect YAML.parse '2016-01-01T13:34:56.789+01:00: value'
+        .toEqual '2016-01-01T12:34:56.789Z': 'value'
+
+    it 'leaves quoted timestamp keys and timestamp values unchanged', ->
+        parsed = YAML.parse """
+        "2016-01-01 12:34:56.789": 2016-01-02 12:34:56.789
+        """
+        expect(parsed['2016-01-01 12:34:56.789']).toEqual new Date('2016-01-02T12:34:56.789Z')
+
+    it 'supports nested explicit scalar keys and block values', ->
+        expect YAML.parse """
+        outer:
+          ? 2016-01-01 12:34:56.789 # key comment
+          # between key and value
+          :
+            value: nested
+          ? 'plain key'
+          : 42
+        """
+        .toEqual outer: {'2016-01-01T12:34:56.789Z': {value: 'nested'}, 'plain key': 42}
+
+    it 'rejects missing or incorrectly indented explicit values and collection keys', ->
+        for source in ['? 2016-01-01', '? 2016-01-01\nother: value', '? 2016-01-01\n  : value', '? [a, b]\n: value']
+            expect(-> YAML.parse source).toThrow()
+
+    it 'preserves timestamp keys through a dump and parse round trip', ->
+        parsed = YAML.parse '2016-01-01 12:34:56.789: value'
+        expect(YAML.parse(YAML.stringify(parsed, 4))).toEqual parsed
+
 describe 'Parsed YAML Inline Collections', ->
 
     it 'can be simple inline array', ->

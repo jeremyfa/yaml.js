@@ -14,6 +14,8 @@ class Parser
     PATTERN_FOLDED_SCALAR_ALL:              new Pattern '^(?:(?<type>![^\\|>]*)\\s+)?(?<separator>\\||>)(?<modifiers>\\+|\\-|\\d+|\\+\\d+|\\-\\d+|\\d+\\+|\\d+\\-)?(?<comments> +#.*)?$'
     PATTERN_FOLDED_SCALAR_END:              new Pattern '(?<separator>\\||>)(?<modifiers>\\+|\\-|\\d+|\\+\\d+|\\-\\d+|\\d+\\+|\\d+\\-)?(?<comments> +#.*)?$'
     PATTERN_SEQUENCE_ITEM:                  new Pattern '^\\-((?<leadspaces>\\s+)(?<value>.+?))?\\s*$'
+    PATTERN_EXPLICIT_MAPPING_KEY:           new Pattern '^\\? +(?<key>.+?) *$'
+    PATTERN_EXPLICIT_MAPPING_VALUE:         new Pattern '^ *:(?:\\s+(?<value>.*))?\\s*$'
     PATTERN_ANCHOR_VALUE:                   new Pattern '^&(?<ref>[^ ]+) *(?<value>.*)'
     PATTERN_COMPACT_NOTATION:               new Pattern '^(?<key>'+Inline.REGEX_QUOTED_STRING+'|[^ \'"\\{\\[].*?) *\\:(\\s+(?<value>.+?))?\\s*$'
     PATTERN_MAPPING_ITEM:                   new Pattern '^(?<key>'+Inline.REGEX_QUOTED_STRING+'|[^ \'"\\[\\{].*?) *\\:(\\s+(?<value>.+?))?\\s*$'
@@ -109,7 +111,7 @@ class Parser
                     else
                         data.push @parseValue values.value, exceptionOnInvalidType, objectDecoder
 
-            else if (values = @PATTERN_MAPPING_ITEM.exec @currentLine) and values.key.indexOf(' #') is -1
+            else if (values = @parseMappingItem()) and (values.explicit or values.key.indexOf(' #') is -1)
                 if @CONTEXT_SEQUENCE is context
                     throw new ParseException 'You cannot define a mapping item when in a sequence'
                 context = @CONTEXT_MAPPING
@@ -119,6 +121,9 @@ class Parser
                 Inline.configure exceptionOnInvalidType, objectDecoder
                 try
                     key = Inline.parseScalar values.key
+                    # JavaScript object keys are strings. Date.toString() drops
+                    # milliseconds and depends on the process's local timezone.
+                    key = key.toISOString() if key instanceof Date
                 catch e
                     e.parsedLine = @getRealCurrentLineNb() + 1
                     e.snippet = @currentLine
@@ -277,6 +282,25 @@ class Parser
         else
             return data
 
+
+
+    # Read an implicit mapping item or a scalar key written as ? key / : value.
+    # Collection keys cannot be represented faithfully by JavaScript objects.
+    parseMappingItem: ->
+        unless explicit = @PATTERN_EXPLICIT_MAPPING_KEY.exec @currentLine
+            return @PATTERN_MAPPING_ITEM.exec @currentLine
+
+        if Utils.ltrim(explicit.key).charAt(0) in ['[', '{']
+            throw new ParseException 'Explicit mapping keys must be scalars.', @getRealCurrentLineNb() + 1, @currentLine
+
+        indentation = @getCurrentLineIndentation()
+        while @moveToNextLine()
+            continue if @isCurrentLineEmpty()
+            if @getCurrentLineIndentation() is indentation and values = @PATTERN_EXPLICIT_MAPPING_VALUE.exec @currentLine
+                return {key: explicit.key, value: values.value, explicit: true}
+            break
+
+        throw new ParseException 'Expected a value for the explicit mapping key.', @getRealCurrentLineNb() + 1, @currentLine
 
 
     # Returns the current line number (takes the offset into account).

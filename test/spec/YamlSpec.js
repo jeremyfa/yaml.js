@@ -88,6 +88,58 @@ describe('Parsed YAML Collections', function() {
   });
 });
 
+describe('Timestamp mapping keys', function() {
+  it('keeps timestamps that differ only in milliseconds distinct', function() {
+    return expect(YAML.parse("2016-01-01 12:34:56.789: foo\n2016-01-01 12:34:56.790: bar")).toEqual({
+      '2016-01-01T12:34:56.789Z': 'foo',
+      '2016-01-01T12:34:56.790Z': 'bar'
+    });
+  });
+  it('supports explicit scalar timestamp keys', function() {
+    return expect(YAML.parse("? 2016-01-01 12:34:56.789\n: foo\n? 2016-01-02 12:34:56.789\n: bar")).toEqual({
+      '2016-01-01T12:34:56.789Z': 'foo',
+      '2016-01-02T12:34:56.789Z': 'bar'
+    });
+  });
+  it('normalizes timestamp offsets to UTC without losing milliseconds', function() {
+    return expect(YAML.parse('2016-01-01T13:34:56.789+01:00: value')).toEqual({
+      '2016-01-01T12:34:56.789Z': 'value'
+    });
+  });
+  it('leaves quoted timestamp keys and timestamp values unchanged', function() {
+    var parsed;
+    parsed = YAML.parse("\"2016-01-01 12:34:56.789\": 2016-01-02 12:34:56.789");
+    return expect(parsed['2016-01-01 12:34:56.789']).toEqual(new Date('2016-01-02T12:34:56.789Z'));
+  });
+  it('supports nested explicit scalar keys and block values', function() {
+    return expect(YAML.parse("outer:\n  ? 2016-01-01 12:34:56.789 # key comment\n  # between key and value\n  :\n    value: nested\n  ? 'plain key'\n  : 42")).toEqual({
+      outer: {
+        '2016-01-01T12:34:56.789Z': {
+          value: 'nested'
+        },
+        'plain key': 42
+      }
+    });
+  });
+  it('rejects missing or incorrectly indented explicit values and collection keys', function() {
+    var i, len, ref, results, source;
+    ref = ['? 2016-01-01', '? 2016-01-01\nother: value', '? 2016-01-01\n  : value', '? [a, b]\n: value'];
+    results = [];
+    for (i = 0, len = ref.length; i < len; i++) {
+      source = ref[i];
+      results.push(expect(function() {
+        return YAML.parse(source);
+      }).toThrow());
+    }
+    return results;
+  });
+  return it('preserves timestamp keys through a dump and parse round trip', function() {
+    var parsed;
+    parsed = YAML.parse('2016-01-01 12:34:56.789: value');
+    return expect(YAML.parse(YAML.stringify(parsed, 4))).toEqual(parsed);
+  });
+});
+
 describe('Parsed YAML Inline Collections', function() {
   it('can be simple inline array', function() {
     return expect(YAML.parse("---\nseq: [ a, b, c ]")).toEqual({
