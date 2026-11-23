@@ -29,6 +29,11 @@ Parse yaml string:
 nativeObject = YAML.parse(yamlString);
 ```
 
+Mappings are returned as JavaScript objects with string keys. Timestamp keys in
+block mappings use UTC ISO strings, preserving milliseconds (for example,
+`2016-01-01 12:34:56.789` becomes `2016-01-01T12:34:56.789Z`). Quoted keys remain
+literal strings. Scalar keys can also use the explicit `? key` / `: value` syntax.
+
 Dump native object into yaml string:
 
 ``` js
