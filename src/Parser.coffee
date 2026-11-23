@@ -41,7 +41,7 @@ class Parser
         @lines          = []
         @currentLineNb  = -1
         @currentLine    = ''
-        @refs           = {}
+        @refs           = Object.create(null)
 
 
     # Parses a YAML string to a JavaScript value.
@@ -228,32 +228,18 @@ class Parser
                 lineCount = @lines.length
                 if 1 is lineCount or (2 is lineCount and Utils.isEmpty(@lines[1]))
                     try
-                        value = Inline.parse @lines[0], exceptionOnInvalidType, objectDecoder
+                        value = Inline.parse @lines[0], exceptionOnInvalidType, objectDecoder, @refs
                     catch e
                         e.parsedLine = @getRealCurrentLineNb() + 1
                         e.snippet = @currentLine
 
                         throw e
 
-                    if typeof value is 'object'
-                        if value instanceof Array
-                            first = value[0]
-                        else
-                            for key of value
-                                first = value[key]
-                                break
-
-                        if typeof first is 'string' and first.indexOf('*') is 0
-                            data = []
-                            for alias in value
-                                data.push @refs[alias[1..]]
-                            value = data
-
                     return value
 
                 else if Utils.ltrim(value).charAt(0) in ['[', '{']
                     try
-                        return Inline.parse value, exceptionOnInvalidType, objectDecoder
+                        return Inline.parse value, exceptionOnInvalidType, objectDecoder, @refs
                     catch e
                         e.parsedLine = @getRealCurrentLineNb() + 1
                         e.snippet = @currentLine
@@ -420,7 +406,7 @@ class Parser
         if value.charAt(0) in ['[', '{', '"', "'"]
             while true
                 try
-                    return Inline.parse value, exceptionOnInvalidType, objectDecoder
+                    return Inline.parse value, exceptionOnInvalidType, objectDecoder, @refs
                 catch e
                     if e instanceof ParseMore and @moveToNextLine()
                         value += "\n" + Utils.trim(@currentLine, ' ')
@@ -431,7 +417,7 @@ class Parser
         else
             if @isNextLineIndented()
                 value += "\n" + @getNextEmbedBlock()
-            return Inline.parse value, exceptionOnInvalidType, objectDecoder
+            return Inline.parse value, exceptionOnInvalidType, objectDecoder, @refs
 
         return
 

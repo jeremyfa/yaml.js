@@ -147,6 +147,82 @@ describe 'Parsed YAML Collections', ->
         expect YAML.parse """ trailing: empty lines\n"""
         .toEqual trailing: 'empty lines'
 
+describe 'Aliases in flow collections', ->
+
+    it 'resolves aliases in nested mappings and mixed sequences', ->
+        parsed = YAML.parse """
+        base: &base {x: 3}
+        values: [first, *base, {nested: [*base]}]
+        copy: {value: *base}
+        """
+        expect(parsed.values).toEqual ['first', {x: 3}, {nested: [{x: 3}]}]
+        expect(parsed.values[1]).toBe parsed.base
+        expect(parsed.copy.value).toBe parsed.base
+
+    it 'resolves false, zero and null anchors', ->
+        expect YAML.parse """
+        no: &no false
+        zero: &zero 0
+        empty: &empty null
+        values: [*no, *zero, *empty]
+        """
+        .toEqual no: false, zero: 0, empty: null, values: [false, 0, null]
+
+    it 'does not interpret quoted aliases', ->
+        expect(YAML.parse "['*missing', {value: '*missing'}]").toEqual ['*missing', {value: '*missing'}]
+
+    it 'rejects missing aliases and inherited reference names', ->
+        for value in ['[*missing]', '{value: *missing}', '[*toString]', '[*constructor]']
+            expect(-> YAML.parse value).toThrow()
+
+    it 'does not retain anchors between documents', ->
+        YAML.parse 'base: &base {x: 3}'
+        expect(-> YAML.parse '{value: *base}').toThrow()
+
+    it 'merges an aliased mapping without modifying it', ->
+        parsed = YAML.parse """
+        foo: &foo
+          x: 3
+        bar: { <<: *foo, y: 4 }
+        """
+        expect(parsed.bar).toEqual x: 3, y: 4
+        expect(parsed.foo).toEqual x: 3
+
+    it 'lets explicit keys override merges regardless of their position', ->
+        parsed = YAML.parse """
+        base: &base {x: 3, y: 4}
+        before: {x: 1, <<: *base}
+        after: {<<: *base, x: 1}
+        duplicate: {<<: *base, x: 1, x: 2}
+        """
+        for key in ['before', 'after', 'duplicate']
+            expect(parsed[key]).toEqual x: 1, y: 4
+
+    it 'gives earlier mappings precedence in a merge sequence', ->
+        expect YAML.parse """
+        first: &first {x: 1, y: 2}
+        second: &second {x: 3, z: 4}
+        merged: {<<: [*first, *second], y: 5}
+        """
+        .toEqual first: {x: 1, y: 2}, second: {x: 3, z: 4}, merged: {x: 1, y: 5, z: 4}
+
+    it 'supports literal flow merge mappings and quoted merge keys', ->
+        expect(YAML.parse '{<<: {x: 3}, y: 4}').toEqual x: 3, y: 4
+        expect(YAML.parse '{"<<": {x: 3}, y: 4}').toEqual '<<': {x: 3}, y: 4
+
+    it 'rejects scalar and nested sequence merge sources', ->
+        for value in ['{<<: 3}', '{<<: null}', '{<<: [1]}', '{<<: [[1]]}']
+            expect(-> YAML.parse value).toThrow()
+
+    it 'copies only own keys and treats prototype names as mapping data', ->
+        parsed = YAML.parse '{<<: {__proto__: {polluted: true}, hasOwnProperty: 1}, constructor: 2}'
+        expect(Object.getPrototypeOf(parsed)).toBe Object.prototype
+        expect(Object.prototype.hasOwnProperty.call(parsed, '__proto__')).toBe true
+        expect(parsed.__proto__).toEqual polluted: true
+        expect(parsed.hasOwnProperty).toBe 1
+        expect(parsed.constructor).toBe 2
+        expect(parsed.polluted).toBeUndefined()
+
 describe 'Parsed YAML Inline Collections', ->
 
     it 'can be simple inline array', ->
