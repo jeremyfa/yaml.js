@@ -198,6 +198,81 @@ describe 'Parsed YAML Inline Collections', ->
 
 
 
+describe 'Escaped physical line breaks', ->
+
+    slash = '\\'
+
+    for [name, lineBreak] in [['LF', "\n"], ['CRLF', "\r\n"], ['CR', "\r"]]
+        do (name, lineBreak) ->
+            it 'joins double-quoted mapping values using '+name, ->
+                source = [
+                    'test: "ThisIsAVery'+slash
+                    '  LargeString'+slash
+                    '  WhichNeedsToBe'+slash
+                    '  SeperatedOver'+slash
+                    '  MultipleLines'+slash
+                    '  WithoutSpaces"'
+                    'next: true'
+                ].join lineBreak
+                expect(YAML.parse source).toEqual
+                    test: 'ThisIsAVeryLargeStringWhichNeedsToBeSeperatedOverMultipleLinesWithoutSpaces'
+                    next: true
+
+    it 'joins a scalar document', ->
+        expect(YAML.parse '"first'+slash+"\n  "+'second"').toEqual 'firstsecond'
+
+    it 'joins a block sequence item', ->
+        source = '- "first'+slash+"\n  "+'second"'+"\n- last"
+        expect(YAML.parse source).toEqual ['firstsecond', 'last']
+
+    it 'keeps the position of the next flow sequence item', ->
+        source = 'values: ["first'+slash+"\n  "+'second", "last"]'
+        expect(YAML.parse source).toEqual values: ['firstsecond', 'last']
+
+    it 'keeps the position of flow mapping keys and values', ->
+        source = 'values: {"first'+slash+"\n  "+'key": "first'+slash+"\n  "+'value", next: true}'
+        expect(YAML.parse source).toEqual values: {firstkey: 'firstvalue', next: true}
+
+    it 'removes continuation indentation including tabs', ->
+        source = 'value: "first'+slash+"\n \t  "+'second"'
+        expect(YAML.parse source).toEqual value: 'firstsecond'
+
+    it 'preserves explicit escaped spaces after a continuation', ->
+        source = 'description: "repositories'+slash+"\n  "+slash+' on https://oss.sonatype.org/"'
+        expect(YAML.parse source).toEqual description: 'repositories on https://oss.sonatype.org/'
+
+    it 'keeps additional empty lines after an escaped break', ->
+        source = 'value: "first'+slash+"\n\n\n  "+'second"'
+        expect(YAML.parse source).toEqual value: "first\n\nsecond"
+
+    it 'still decodes escaped quotes and explicit line feeds', ->
+        source = 'value: "first'+slash+'"'+slash+"\n  "+slash+'nsecond"'
+        expect(YAML.parse source).toEqual value: "first\"\nsecond"
+
+    it 'does not treat an escaped backslash as a continuation', ->
+        source = 'value: "left'+slash+slash+"\n  "+'right"'
+        value = YAML.parse(source).value
+        expect(value.substr(0, 5)).toEqual 'left'+slash
+        expect(value.substr(-5)).toEqual 'right'
+        expect(value).not.toEqual 'left'+slash+'right'
+
+    it 'recognizes a continuation following an escaped backslash', ->
+        source = 'value: "left'+slash+slash+slash+"\n  "+'right"'
+        expect(YAML.parse source).toEqual value: 'left'+slash+'right'
+
+    it 'leaves literal backslashes and escaped line feeds distinct', ->
+        source = 'value: "left'+slash+slash+'nright'+slash+'nlast"'
+        expect(YAML.parse source).toEqual value: 'left'+slash+"nright\nlast"
+
+    it 'still rejects an unterminated continued string', ->
+        source = 'value: "first'+slash+"\n  second"
+        expect(-> YAML.parse source).toThrow()
+
+    it 'rejects extra content after a continued scalar document', ->
+        source = '"first'+slash+"\n  "+'second"'+"\nother: value"
+        expect(-> YAML.parse source).toThrow()
+
+
 describe 'Parsed YAML Basic Types', ->
 
     it 'can be strings', ->

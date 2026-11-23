@@ -251,7 +251,7 @@ class Parser
 
                     return value
 
-                else if Utils.ltrim(value).charAt(0) in ['[', '{']
+                else if Utils.ltrim(value).charAt(0) in ['[', '{', '"']
                     try
                         return Inline.parse value, exceptionOnInvalidType, objectDecoder
                     catch e
