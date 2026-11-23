@@ -11,7 +11,7 @@ DumpException   = require './Exception/DumpException'
 class Inline
 
     # Quoted string regular expression
-    @REGEX_QUOTED_STRING:               '(?:"(?:[^"\\\\]*(?:\\\\.[^"\\\\]*)*)"|\'(?:[^\']*(?:\'\'[^\']*)*)\')'
+    @REGEX_QUOTED_STRING:               '(?:"(?:[^"\\\\]*(?:\\\\[\\s\\S][^"\\\\]*)*)"|\'(?:[^\']*(?:\'\'[^\']*)*)\')'
 
     # Pre-compiled patterns
     #

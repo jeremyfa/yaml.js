@@ -8,7 +8,7 @@ class Unescaper
 
     # Regex fragment that matches an escaped character in
     # a double quoted string.
-    @PATTERN_ESCAPED_CHARACTER:     new Pattern '\\\\([0abt\tnvfre "\\/\\\\N_LP]|x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|U[0-9a-fA-F]{8})';
+    @PATTERN_ESCAPED_CHARACTER:     new Pattern '\\\\((?:\\r\\n|[\\r\\n])[ \\t]*|[0abt\tnvfre "\\/\\\\N_LP]|x[0-9a-fA-F]{2}|u[0-9a-fA-F]{4}|U[0-9a-fA-F]{8})';
 
 
     # Unescapes a single quoted string.
@@ -44,6 +44,9 @@ class Unescaper
     @unescapeCharacter: (value) ->
         ch = String.fromCharCode
         switch value.charAt(1)
+            when "\n", "\r"
+                # Escaped physical line breaks and continuation indentation.
+                return ''
             when '0'
                 return ch(0)
             when 'a'
