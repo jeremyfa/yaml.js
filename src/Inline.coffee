@@ -46,7 +46,7 @@ class Inline
     #
     # @throw [ParseException]
     #
-    @parse: (value, exceptionOnInvalidType = false, objectDecoder = null) ->
+    @parse: (value, exceptionOnInvalidType = false, objectDecoder = null, refs = {}) ->
         # Update settings from last call of Inline.parse()
         @settings.exceptionOnInvalidType = exceptionOnInvalidType
         @settings.objectDecoder = objectDecoder
@@ -60,7 +60,7 @@ class Inline
             return ''
 
         # Keep a context object to pass through static methods
-        context = {exceptionOnInvalidType, objectDecoder, i: 0}
+        context = {exceptionOnInvalidType, objectDecoder, refs, i: 0}
 
         switch value.charAt(0)
             when '['
@@ -272,7 +272,12 @@ class Inline
                     if not(isQuoted) and typeof(value) is 'string' and (value.indexOf(': ') isnt -1 or value.indexOf(":\n") isnt -1)
                         # Embedded mapping?
                         try
-                            value = @parseMapping '{'+value+'}'
+                            value = @parseMapping '{'+value+'}', {
+                                exceptionOnInvalidType: context.exceptionOnInvalidType
+                                objectDecoder: context.objectDecoder
+                                refs: context.refs
+                                i: 0
+                            }
                         catch e
                             # No, it's not
 
@@ -297,6 +302,7 @@ class Inline
     #
     @parseMapping: (mapping, context) ->
         output = {}
+        explicitKeys = Object.create(null)
         len = mapping.length
         {i} = context
         i += 1
@@ -318,7 +324,9 @@ class Inline
                 continue
 
             # Key
+            isMerge = mapping.charAt(i) not in ['"', "'"]
             key = @parseScalar mapping, [':', ' ', "\n"], ['"', "'"], context, false
+            isMerge = isMerge and key is '<<'
             {i} = context
 
             # Value
@@ -331,32 +339,17 @@ class Inline
                         # Nested sequence
                         value = @parseSequence mapping, context
                         {i} = context
-                        # Spec: Keys MUST be unique; first one wins.
-                        # Parser cannot abort this mapping earlier, since lines
-                        # are processed sequentially.
-                        if output[key] == undefined
-                            output[key] = value
                         done = true
                     when '{'
                         # Nested mapping
                         value = @parseMapping mapping, context
                         {i} = context
-                        # Spec: Keys MUST be unique; first one wins.
-                        # Parser cannot abort this mapping earlier, since lines
-                        # are processed sequentially.
-                        if output[key] == undefined
-                            output[key] = value
                         done = true
                     when ':', ' ', "\n"
                         # Do nothing
                     else
                         value = @parseScalar mapping, [',', '}'], ['"', "'"], context
                         {i} = context
-                        # Spec: Keys MUST be unique; first one wins.
-                        # Parser cannot abort this mapping earlier, since lines
-                        # are processed sequentially.
-                        if output[key] == undefined
-                            output[key] = value
                         done = true
                         --i
 
@@ -365,7 +358,28 @@ class Inline
                 if done
                     break
 
+            if done
+                if isMerge
+                    sources = if value instanceof Array then value else [value]
+                    for source in sources
+                        if not source? or typeof source isnt 'object' or source instanceof Array or source instanceof Date
+                            throw new ParseException 'Merge items must be mappings.'
+                        for own mergeKey, mergeValue of source
+                            unless Object.prototype.hasOwnProperty.call(output, mergeKey)
+                                @setMappingValue output, mergeKey, mergeValue
+                else unless Object.prototype.hasOwnProperty.call(explicitKeys, key)
+                    # Explicit keys override merged keys in either order; the
+                    # first explicit occurrence still wins over duplicates.
+                    @setMappingValue output, key, value
+                    explicitKeys[key] = true
+
         throw new ParseMore 'Malformed inline YAML string '+mapping
+
+
+    # Define data properties without invoking inherited setters such as __proto__.
+    @setMappingValue: (mapping, key, value) ->
+        Object.defineProperty mapping, key, {value, enumerable: true, writable: true, configurable: true}
+        return
 
 
     # Evaluates scalars and replaces magic values.
@@ -376,6 +390,11 @@ class Inline
     #
     @evaluateScalar: (scalar, context) ->
         scalar = Utils.trim(scalar)
+        if scalar.charAt(0) is '*'
+            refName = scalar[1..]
+            unless context?.refs? and Object.prototype.hasOwnProperty.call(context.refs, refName)
+                throw new ParseException 'Reference "'+refName+'" does not exist.'
+            return context.refs[refName]
         scalarLower = scalar.toLowerCase()
 
         switch scalarLower

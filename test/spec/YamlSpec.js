@@ -88,6 +88,140 @@ describe('Parsed YAML Collections', function() {
   });
 });
 
+describe('Aliases in flow collections', function() {
+  it('resolves aliases in nested mappings and mixed sequences', function() {
+    var parsed;
+    parsed = YAML.parse("base: &base {x: 3}\nvalues: [first, *base, {nested: [*base]}]\ncopy: {value: *base}");
+    expect(parsed.values).toEqual([
+      'first',
+      {
+        x: 3
+      },
+      {
+        nested: [
+          {
+            x: 3
+          }
+        ]
+      }
+    ]);
+    expect(parsed.values[1]).toBe(parsed.base);
+    return expect(parsed.copy.value).toBe(parsed.base);
+  });
+  it('resolves false, zero and null anchors', function() {
+    return expect(YAML.parse("no: &no false\nzero: &zero 0\nempty: &empty null\nvalues: [*no, *zero, *empty]")).toEqual({
+      no: false,
+      zero: 0,
+      empty: null,
+      values: [false, 0, null]
+    });
+  });
+  it('does not interpret quoted aliases', function() {
+    return expect(YAML.parse("['*missing', {value: '*missing'}]")).toEqual([
+      '*missing',
+      {
+        value: '*missing'
+      }
+    ]);
+  });
+  it('rejects missing aliases and inherited reference names', function() {
+    var i, len, ref, results, value;
+    ref = ['[*missing]', '{value: *missing}', '[*toString]', '[*constructor]'];
+    results = [];
+    for (i = 0, len = ref.length; i < len; i++) {
+      value = ref[i];
+      results.push(expect(function() {
+        return YAML.parse(value);
+      }).toThrow());
+    }
+    return results;
+  });
+  it('does not retain anchors between documents', function() {
+    YAML.parse('base: &base {x: 3}');
+    return expect(function() {
+      return YAML.parse('{value: *base}');
+    }).toThrow();
+  });
+  it('merges an aliased mapping without modifying it', function() {
+    var parsed;
+    parsed = YAML.parse("foo: &foo\n  x: 3\nbar: { <<: *foo, y: 4 }");
+    expect(parsed.bar).toEqual({
+      x: 3,
+      y: 4
+    });
+    return expect(parsed.foo).toEqual({
+      x: 3
+    });
+  });
+  it('lets explicit keys override merges regardless of their position', function() {
+    var i, key, len, parsed, ref, results;
+    parsed = YAML.parse("base: &base {x: 3, y: 4}\nbefore: {x: 1, <<: *base}\nafter: {<<: *base, x: 1}\nduplicate: {<<: *base, x: 1, x: 2}");
+    ref = ['before', 'after', 'duplicate'];
+    results = [];
+    for (i = 0, len = ref.length; i < len; i++) {
+      key = ref[i];
+      results.push(expect(parsed[key]).toEqual({
+        x: 1,
+        y: 4
+      }));
+    }
+    return results;
+  });
+  it('gives earlier mappings precedence in a merge sequence', function() {
+    return expect(YAML.parse("first: &first {x: 1, y: 2}\nsecond: &second {x: 3, z: 4}\nmerged: {<<: [*first, *second], y: 5}")).toEqual({
+      first: {
+        x: 1,
+        y: 2
+      },
+      second: {
+        x: 3,
+        z: 4
+      },
+      merged: {
+        x: 1,
+        y: 5,
+        z: 4
+      }
+    });
+  });
+  it('supports literal flow merge mappings and quoted merge keys', function() {
+    expect(YAML.parse('{<<: {x: 3}, y: 4}')).toEqual({
+      x: 3,
+      y: 4
+    });
+    return expect(YAML.parse('{"<<": {x: 3}, y: 4}')).toEqual({
+      '<<': {
+        x: 3
+      },
+      y: 4
+    });
+  });
+  it('rejects scalar and nested sequence merge sources', function() {
+    var i, len, ref, results, value;
+    ref = ['{<<: 3}', '{<<: null}', '{<<: [1]}', '{<<: [[1]]}'];
+    results = [];
+    for (i = 0, len = ref.length; i < len; i++) {
+      value = ref[i];
+      results.push(expect(function() {
+        return YAML.parse(value);
+      }).toThrow());
+    }
+    return results;
+  });
+  return it('copies only own keys and treats prototype names as mapping data', function() {
+    var parsed;
+    parsed = YAML.parse('{<<: {__proto__: {polluted: true}, hasOwnProperty: 1}, constructor: 2}');
+    expect(Object.getPrototypeOf(parsed)).toBe(Object.prototype);
+    expect(Object.prototype.hasOwnProperty.call(parsed, '__proto__')).toBe(true);
+    expect(parsed.__proto__).toEqual({
+      polluted: true
+    });
+    expect(parsed.hasOwnProperty).toBe(1);
+    expect(parsed.constructor).toBe(2);
+    return expect(parsed.polluted).toBeUndefined();
+  });
+});
+
 describe('Parsed YAML Inline Collections', function() {
   it('can be simple inline array', function() {
     return expect(YAML.parse("---\nseq: [ a, b, c ]")).toEqual({
